@@ -1,6 +1,6 @@
 <?php
 
-namespace System\Components;
+namespace System\Services;
 
 /**
  * Service for scanning directories
@@ -20,17 +20,17 @@ class DirectoryScanner
 
 	public static function checkDirectory($path)
 	{
-		if(!file_dir($path)) {
+		if(!is_dir($path)) {
 			throw \ErrorException(DirectoryScanner::EXCEPTION_PATH_NOT_DIRECTORY);
 		}
 	}
 
 	public static function getFiles($path)
 	{
-		$contents = DirectoryScanner::getDirContents();
+		$contents = DirectoryScanner::getDirContents($path);
 		$files = array();
 		foreach($contents as $inode) {
-			if(!is_dir($inode)) {
+			if(is_file($inode)) {
 				array_push($files, $path.DIRECTORY_SEPARATOR.$inode);
 			}
 		}
@@ -39,7 +39,7 @@ class DirectoryScanner
 
 	public static function getDirs($path)
 	{
-		$contents = DirectoryScanner::getDirContents();
+		$contents = DirectoryScanner::getDirContents($path);
 		$excludes = array('.', '..');
 		$dirs = array();
 		foreach($contents as $inode) {

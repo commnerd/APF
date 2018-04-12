@@ -1,8 +1,9 @@
 <?php
 
-namespace System\Models;
+namespace System;
 
 use System\Interfaces\App as AppInterface;
+use System\Interfaces\ConfigConsumer;
 use System\Components\ConfigReader;
 
 /**
@@ -15,11 +16,7 @@ class App implements AppInterface, ConfigConsumer
 	 * 
 	 * @var string
 	 */
-	private $_paths = array(
-		'base' => $this->getBaseDir(),
-		'app' => $this->getAppPath(),
-		'config' => $this->getConfigPath(),
-	);
+	private $_paths;
 
 	/**
 	 * Component mapping for the app
@@ -43,6 +40,12 @@ class App implements AppInterface, ConfigConsumer
 	 */
 	public function __get($name)
 	{
+		$this->_paths = array(
+			'base' => $this->getBaseDir(),
+			'app' => $this->getAppPath(),
+			'config' => $this->getConfigPath(),
+		);
+
 		if(!isset($this->componentMap[$name])) {
 			$this->componentMap[get_class($name)] = new $name();
 		}
@@ -72,6 +75,18 @@ class App implements AppInterface, ConfigConsumer
 	}
 
 	/**
+	 * Set path by title
+	 * 
+	 * @param  string $title The title/context of the directory
+	 * @param  string $path  The path for the associated title
+	 * @return void
+	 */
+	public function setDirPath($title, $path)
+	{
+		$this->_directories[$title] = $path;
+	}
+
+	/**
 	 * Get the application's base directory
 	 * 
 	 * @return string The base directory for the application
@@ -92,15 +107,13 @@ class App implements AppInterface, ConfigConsumer
 	}
 
 	/**
-	 * Set path by title
+	 * Required by Config to get the associated config path
+	 * --Set the configurations
 	 * 
-	 * @param  string $title The title/context of the directory
-	 * @param  string $path  The path for the associated title
-	 * @return void
+	 * @param array $configs The configs read in from the ConfigReader 
 	 */
-	public function getDirPath($title, $path)
-	{
-		$this->_directories[$title] = $path;
+	public function setConfigs($configs) {
+		$this->_configMap = $configs;
 	}
 
 	/**

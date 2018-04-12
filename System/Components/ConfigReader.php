@@ -64,6 +64,7 @@ class ConfigReader
 		if(!empty($this->_target)) {
 			$dir = $this->_target->getConfigPath();
 		}
+		// exit("<pre>".print_r($dir, true)."</pre>");
 		if(empty($dir)) {
 			throw ErrorException(self::EXCEPTION_NULL_PATH);
 		}
