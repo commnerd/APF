@@ -134,7 +134,7 @@ class App implements AppInterface, ConfigConsumer
 	 */
 	public function sendResponse()
 	{
-		$this->
+		echo "Sending response!";
 	}
 
 	/**
