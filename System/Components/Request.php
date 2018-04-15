@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 namespace System\Components;
 
@@ -7,18 +7,18 @@ use System\Interfaces\Request as RequestInterface;
 /**
  * Request object used to gather information about the request
  */
-class Request implements RequestInterface
+class Request extends AppComponent implements RequestInterface
 {
 	/**
 	 * The request method (i.e. GET, POST, PUT, DELETE, HEAD, etc.)
-	 * 
+	 *
 	 * @var string
 	 */
 	private $_method;
 
 	/**
 	 * Array of request header
-	 * 
+	 *
 	 * @var array
 	 */
 	private $_headers;
@@ -35,7 +35,9 @@ class Request implements RequestInterface
 	 */
 	public function __construct()
 	{
-		$this->_verb = isset($_REQUEST['_method']$_SERVER['REQUEST_METHOD'];
+		parent::__construct();
+
+		$this->_method = isset($_REQUEST['_method']) ? $_REQUEST['_method'] : $_SERVER['REQUEST_METHOD'];
 
 		$this->_headers = getallheaders();
 
@@ -44,7 +46,7 @@ class Request implements RequestInterface
 
 	/**
 	 * Get a parameter passed in from the request
-	 * 
+	 *
 	 * @param  string $name  The label for the corresponding argument
 	 * @return string|array  The corresponding data
 	 */
@@ -54,7 +56,7 @@ class Request implements RequestInterface
 
 	/**
 	 * Retrieve header information
-	 * 
+	 *
 	 * @param  string $name The name of the header to retrieve
 	 * @return string       The header value
 	 */
@@ -64,7 +66,7 @@ class Request implements RequestInterface
 
 	/**
 	 * Get the request method
-	 * 
+	 *
 	 * @return string The request method
 	 */
 	public function getMethod()

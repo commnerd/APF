@@ -2,9 +2,7 @@
 
 namespace System\Components;
 
-class Response extends AppComponent
+class Controller extends AppComponent
 {
 
 }
-
-?>

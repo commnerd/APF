@@ -2,6 +2,7 @@
 
 namespace System\Components;
 
+use System\Interfaces\ConfigConsumer;
 use System\Services\DirectoryScanner;
 
 /**
@@ -16,7 +17,7 @@ class ConfigReader
 
 	/**
 	 * Configs read in
-	 * 
+	 *
 	 * @var array
 	 */
 	private $_configs = array();
@@ -30,11 +31,11 @@ class ConfigReader
 
 	/**
 	 * Static function to read in configs
-	 * 
+	 *
 	 * @param System\Interfaces\ConfigConsumer $target The system to read the configs to
 	 * @return array                                   Associative array of variables and values
 	 */
-	public static function read($target)
+	public static function read(ConfigConsumer $target)
 	{
 		$reader = new ConfigReader($target);
 		$reader->readConfigs();
@@ -44,10 +45,10 @@ class ConfigReader
 
 	/**
 	 * Constructor for the config reader
-	 * 
+	 *
 	 * @param System\Interfaces\ConfigConsumer $target The system to read the configs to
 	 */
-	public function __construct($target = null) {
+	public function __construct(ConfigConsumer $target = null) {
 		if(!empty($target)) {
 			$this->_target = $target;
 		}
@@ -55,7 +56,7 @@ class ConfigReader
 
 	/**
 	 * Read in the configs
-	 * 
+	 *
 	 * @param  string $dir The path to read configs from
 	 * @return void
 	 */
@@ -79,7 +80,7 @@ class ConfigReader
 
 	/**
 	 * Get the read-in configs
-	 * 
+	 *
 	 * @return array  The read-in configs
 	 */
 	public function getConfigs()

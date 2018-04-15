@@ -8,7 +8,7 @@ use System\Components\DbConnection;
 /**
  * Model for use by the system
  */
-class Model
+class Model extends AppComponent
 {
 	/**
 	 * Deletion error exception message
@@ -26,14 +26,14 @@ class Model
 
 	/**
 	 * The database connection to work with
-	 * 
+	 *
 	 * @var DbConnection
 	 */
 	private $_db;
 
 	/**
 	 * Attributes to be handled by this class
-	 * 
+	 *
 	 * @var array
 	 */
 	private $_attributes;
@@ -45,28 +45,28 @@ class Model
 
 	/**
 	 * Table maintaining this class's data
-	 * 
+	 *
 	 * @var string
 	 */
 	protected $table;
 
 	/**
 	 * Primary key for the class
-	 * 
+	 *
 	 * @var string
 	 */
 	protected $primaryKey = "ID";
 
 	/**
 	 * Casting declarations to maintain for this class
-	 * 
+	 *
 	 * @var array
 	 */
 	protected $casts;
 
 	/**
 	 * The array of variables intended for automagic filling
-	 * 
+	 *
 	 * @var array
 	 */
 	protected $fillable;
@@ -76,10 +76,10 @@ class Model
 	 */
 	public function __construct()
 	{
-		GLOBAL $app;
-		$this->_db = $app->getDbConnection();
+		parent::__construct();
+		$this->_db = $this->app->getDbConnection();
 		$this->_attributes = array();
-		
+
 		if(empty($this->table) || !is_string($this->table)) {
 			$className = $this->_getClassName();
 			$this->table = TextTransforms::camelCaseToSnakeCase($className);
@@ -92,7 +92,7 @@ class Model
 
 	/**
 	 * Automagic variable retrieval
-	 * 
+	 *
 	 * @param  string $name Name of variable to retrieve
 	 * @return mixed        Value of retrieved variable
 	 */
@@ -103,7 +103,7 @@ class Model
 
 	/**
 	 * Automagic variable setting
-	 * 
+	 *
 	 * @param string $name  Name of variable to retrieve
 	 * @param mixed  $value Value of variable
 	 */
@@ -114,7 +114,7 @@ class Model
 
 	/**
 	 * Fill model from array
-	 * 
+	 *
 	 * @param  array  $attributes Array of items to populate model with
 	 * @return void
 	 */
@@ -158,7 +158,7 @@ class Model
 
 	/**
 	 * Insert model into the database
-	 * 
+	 *
 	 * @return integer Primary key
 	 */
 	private function _insert() {
@@ -167,7 +167,7 @@ class Model
 
 	/**
 	 * Delete a given record
-	 * 
+	 *
 	 * @param boolean $cascade  If true, delete children and all subchildren
 	 * @return void
 	 */
@@ -185,7 +185,7 @@ class Model
 
 	/**
 	 * Get the class name sans namespace
-	 * 
+	 *
 	 * @return string Class name
 	 */
 	private function _getClassName()
@@ -195,7 +195,7 @@ class Model
 
 	/**
 	 * Utility function to make an array if it's supposed to be an array and it's not
-	 * 
+	 *
 	 * @param  mixed  &$var The variable to transform
 	 * @return void
 	 */
@@ -207,7 +207,7 @@ class Model
 
 	/**
 	 * Automagically build the insert query and associated value map
-	 * 
+	 *
 	 * @return array  Query and value map
 	 */
 	private function _buildInsertComponents() {
@@ -230,7 +230,7 @@ class Model
 
 	/**
 	 * Automagically build the update query and associated value map
-	 * 
+	 *
 	 * @return array  Query and value map
 	 */
 	private function _buildUpdateComponents() {
@@ -245,7 +245,7 @@ class Model
 		}
 		$qryMap .= "i";
 		$values[] = $this->_attributes[$this->primaryKey];
-		
+
 		$qry = preg_replace('/VALS/', implode("', '", $updates), $qry);
 
 		return array($qry, array_merge(array($qryMap), $values));
@@ -253,7 +253,7 @@ class Model
 
 	/**
 	 * Map value to query map character
-	 * 
+	 *
 	 * @param  mixed  $value The value to be mapped
 	 * @return char          The character representing the DB type
 	 */

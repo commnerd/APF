@@ -4,12 +4,13 @@ namespace System\Components;
 
 use Mysqli;
 
-class DbConnection 
+class DbConnection extends AppComponent
 {
 
 	protected $connection = null;
 
 	public function __construct($username, $password, $hostname, $dbname, $port) {
+		parent::__construct();
         $this->connection = new mysqli($hostname, $username, $password, $dbname, $port);
 		if ($this->connection->connect_errno) {
 		    echo "Failed to connect to MySQL: (" . $this->connection->connect_errno . ") " . $this->connection->connect_error;
@@ -38,7 +39,7 @@ class DbConnection
 	    } else {
 	    	return;
 	    }
-	    	
+
     }
 
     public function getCustomQuery($pSQL,$pTheBindVal) {
@@ -66,7 +67,7 @@ class DbConnection
 	    } else {
 	    	return;
 	    }
-	    	
+
     }
 
      public function getCustomQueries($pSQL,$pTheBindVal) {
@@ -101,7 +102,7 @@ class DbConnection
 	    } else {
 	    	return;
 	    }
-	    	
+
     }
 
     public function getRecord($pSQL,$pReqID,$pTheClass,$pTheBindVal) {
@@ -125,7 +126,7 @@ class DbConnection
 	    } else {
 	    	return;
 	    }
-	    	
+
     }
 
     public function getRecords($pSQL,$pReqID,$pTheClass,$pTheBindVal) {
@@ -161,7 +162,7 @@ class DbConnection
 			//print_r($ref);
 			$method = $ref->getMethod("bind_param");
 			//print_r($method);
-			$method->invokeArgs($stmt,$tempBindValArr); 
+			$method->invokeArgs($stmt,$tempBindValArr);
 
 			//call_user_func_array(array($stmt, 'bind_param'), $pTheBindVal);
 			//$stmt->bind_param("i", $pTheBindVal);
@@ -215,7 +216,7 @@ class DbConnection
         // echo "\n------\n";
         // printf("Error: %s.\n", $this->connection->error);
         // exit;
-			$method->invokeArgs($stmt,$tempBindValArr1); 
+			$method->invokeArgs($stmt,$tempBindValArr1);
 
 			//call_user_func_array(array($stmt, 'bind_param'), $pTheBindVal);
 			//$stmt->bind_param("i", $pTheBindVal);
@@ -236,7 +237,7 @@ class DbConnection
 					// print_r($ref);
 					$method = $ref->getMethod("bind_param");
 					// print_r($method);
-					$method->invokeArgs($stmt,$tempBindValArr2); 
+					$method->invokeArgs($stmt,$tempBindValArr2);
 
 					//call_user_func_array(array($stmt, 'bind_param'), $pTheBindVal);
 					//$stmt->bind_param("i", $pTheBindVal);
@@ -266,13 +267,13 @@ class DbConnection
 			//print_r($ref);
 			$method = $ref->getMethod("bind_param");
 			//print_r($method);
-			$method->invokeArgs($stmt,$tempBindValArr); 
+			$method->invokeArgs($stmt,$tempBindValArr);
 
 			//call_user_func_array(array($stmt, 'bind_param'), $pTheBindVal);
 			//$stmt->bind_param("i", $pTheBindVal);
 		}
 		unset($tempBindValArr);
-		
+
 	    ////var_dump($stmt);
 	    $stmt->execute();
 	    // $newID = $stmt->update_id;
@@ -304,11 +305,11 @@ class DbConnection
 	        $result[$field->name] = NULL;
 	        $params[] = &$result[$field->name];
 	    }
-	 
+
 	    call_user_func_array(array($stmt, 'bind_result'), $params);
 	    return $result;
 	}
-	 
+
 	/**
 	 * Returns a copy of an array of references
 	 */
