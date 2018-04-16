@@ -31,6 +31,13 @@ class Request extends AppComponent implements RequestInterface
 	private $_arguments;
 
 	/**
+	 * The URL being requested
+	 * 
+	 * @var string
+	 */
+	private $_requestUrl;
+
+	/**
 	 * Constructor for a request
 	 */
 	public function __construct()
@@ -39,9 +46,11 @@ class Request extends AppComponent implements RequestInterface
 
 		$this->_method = isset($_REQUEST['_method']) ? $_REQUEST['_method'] : $_SERVER['REQUEST_METHOD'];
 
-		$this->_headers = getallheaders();
+		$this->_headers = $_SERVER;
 
 		$this->_arguments = $_REQUEST;
+
+		$this->_requestUrl = $_SERVER['REQUEST_URI'];
 	}
 
 	/**
@@ -51,7 +60,7 @@ class Request extends AppComponent implements RequestInterface
 	 * @return string|array  The corresponding data
 	 */
 	public function __get($name) {
-		return $_arguments[$name];
+		return $this->_arguments[$name];
 	}
 
 	/**
@@ -61,7 +70,7 @@ class Request extends AppComponent implements RequestInterface
 	 * @return string       The header value
 	 */
 	public function getHeader($name) {
-		return $_headers[$name];
+		return $this->_headers['HTTP_'.strtoupper($name)];
 	}
 
 	/**
@@ -71,7 +80,17 @@ class Request extends AppComponent implements RequestInterface
 	 */
 	public function getMethod()
 	{
-		return $_method;
+		return $this->_method;
+	}
+
+	/**
+	 * Get the current URL
+	 *
+	 * @return string The requested URL
+	 */
+	public function getUrl()
+	{
+		return $this->_requestUrl;
 	}
 }
 

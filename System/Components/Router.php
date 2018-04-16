@@ -1,11 +1,16 @@
 <?php
 
-namespace System\Utils;
+namespace System\Components;
 
-use System\Interfaces\Router as RouterInterface;
-use AltoRouter
+use AltoRouter;
 
-class Router extends AltoRouter implements RouterInterface
+class Router extends AltoRouter
 {
+
+	protected $app;
+
+	public function __construct(\System\App $app = null) {
+		$this->app = $app;
+	}
 
 }

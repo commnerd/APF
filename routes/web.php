@@ -1,7 +1,5 @@
-<?php 
+<?php
 
-GLOBAL $app;
-
-$router = $app->getRouter();
+$router->map('GET','/', 'HelloWorldController#index', 'home');
 
 ?>
