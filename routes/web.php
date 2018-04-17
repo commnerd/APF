@@ -1,5 +1,7 @@
 <?php
 
-$router->map('GET','/', 'HelloWorldController#index', 'home');
+return array(
+    array('GET','/', 'HelloWorldController#index', 'home'),
+);
 
 ?>

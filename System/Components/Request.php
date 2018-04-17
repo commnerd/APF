@@ -32,7 +32,7 @@ class Request extends AppComponent implements RequestInterface
 
 	/**
 	 * The URL being requested
-	 * 
+	 *
 	 * @var string
 	 */
 	private $_requestUrl;

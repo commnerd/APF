@@ -13,4 +13,9 @@ class Router extends AltoRouter
 		$this->app = $app;
 	}
 
+	public function match($requestUrl = null, $requestMethod = null) {
+		$requestUrl = isset($requestUrl) ? $requestUrl : $_SERVER['REQUEST_URI'];
+		return parent::match($requestUrl, $requestMethod);
+	}
+
 }

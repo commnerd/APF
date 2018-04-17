@@ -2,6 +2,8 @@
 
 namespace App\Controllers;
 
+use System\Components\Request;
+
 class HelloWorldController extends BaseController
 {
     public function index(Request $request)

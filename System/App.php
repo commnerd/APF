@@ -8,7 +8,9 @@ use System\Components\AppComponent;
 use System\Components\ConfigReader;
 use System\Components\Config;
 use System\Components\Router;
-
+use System\Components\Route;
+use ReflectionParameter;
+use ReflectionClass;
 
 /**
  * The overarching system object
@@ -50,7 +52,7 @@ class App implements AppInterface
 		if(!empty($this->_componentAliasMap[$name])) {
 			$name = $this->_componentAliasMap[$name];
 		}
-		
+
 		if(empty($this->_componentMap[$name])) {
 			$this->_componentMap[$name] = new $name();
 		}
@@ -92,8 +94,7 @@ class App implements AppInterface
 		$this->_loadRoutes();
 		$this->_runMiddlewares();
 		$route = $this->_getMappedRoute();
-		exit("Here: ".print_r($route, true));
-		$response = $route->getResponse();
+		$this->_loadResponse($route);
 	}
 
 	/**
@@ -103,7 +104,7 @@ class App implements AppInterface
 	 */
 	public function sendResponse()
 	{
-		echo "Sending response!";
+		$this->{'\System\Components\Response'}->render();
 	}
 
 	/**
@@ -113,7 +114,7 @@ class App implements AppInterface
 	 */
 	private function _loadConfigs()
 	{
-		
+
 		$configReader = new ConfigReader();
 		$configReader->readConfigs($this->getBaseDir().DIRECTORY_SEPARATOR."config");
 		$this->config->setConfigs($configReader->getConfigs());
@@ -121,7 +122,7 @@ class App implements AppInterface
 
 	/**
 	 * Setup the request for the application
-	 * 
+	 *
 	 * @return void
 	 */
 	private function _setupRequest()
@@ -139,11 +140,12 @@ class App implements AppInterface
 		$dir = $this->getBaseDir().DIRECTORY_SEPARATOR.$this->config->get('path.routes');
 		$files = DirectoryScanner::getFiles($dir);
 		$router = new Router($this);
+
 		foreach($files as $file) {
-			exec(file_get_contents($file));
+			$router->addRoutes(include($file));
 		}
-		$this->_componentMap['\App\Components\Router'] = $router;
-		exit(print_r($this->{'\System\Components\Router'}, true));
+		$this->_componentMap['\System\Components\Router'] = $router;
+
 	}
 
 	/**
@@ -161,14 +163,14 @@ class App implements AppInterface
 	}
 
 	/**
-	 * Get the mapped 
+	 * Get the mapped route
 	 */
 	private function _getMappedRoute()
 	{
-		return $this->{'\System\Components\Router'}->match(
+		return new Route($this->{'\System\Components\Router'}->match(
 			$this->request->getUrl(),
 			$this->request->getMethod()
-		);
+		));
 	}
 
 	/**
@@ -181,5 +183,42 @@ class App implements AppInterface
 	{
 		$this->_componentAliasMap[$name] = $class;
 		$this->_componentMap[$class] = new $class();
+	}
+
+	/**
+	 * Get the contents from the route
+	 *
+	 * @param  \System\Components\Route $route  The route definition
+	 * @return string                           The call contents
+	 */
+	private function _loadResponse(Route $route)
+	{
+		$params = array();
+		$controller = $route->controller;
+		$method = $route->method;
+		$paramTypes = $this->_getParamTypes($controller, $method);
+		foreach($paramTypes as $type) {
+			$params[] = $this->{$type};
+		}
+		$obj = new $controller();
+		$this->{"\System\Components\Response"} = call_user_func_array( array($obj, $method), $params );
+	}
+
+	/**
+	 * Get the parameter types to pass to the method
+	 * @param  string $controller The fully qualified name for the controller
+	 * @param  string $method     The name of the method
+	 * @return array              The list of variable types for the method
+	 */
+	private function _getParamTypes($controller, $method)
+	{
+		$class = new ReflectionClass($controller);
+		$params = $class->getMethod($method)->getParameters();
+		$paramTypes = array();
+		foreach($params as $param) {
+			$paramTypes[] = $param->getClass()->name;
+		}
+		
+		return $paramTypes;
 	}
 }
