@@ -104,7 +104,7 @@ class App implements AppInterface
 	 */
 	public function sendResponse()
 	{
-		$this->{'\System\Components\Response'}->render();
+		echo $this->{'\System\Components\Response'}->render();
 	}
 
 	/**

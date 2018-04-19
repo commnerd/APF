@@ -41,10 +41,13 @@ class ConfigReader extends AppComponent
 		}
 		$files = DirectoryScanner::getFiles($dir);
 		foreach($files as $file) {
-			$filesAry = explode(".", $file);
-			$extension = end($filesAry);
-			if($extension === 'ini') {
-				$this->_configs = array_merge($this->_configs, parse_ini_file($file));
+			$fileInfo = pathinfo($file);
+			if($fileInfo['extension'] === 'ini') {
+				$configs = parse_ini_file($file);
+				if($fileInfo['filename'] !== "global") {
+					$configs = $this->_rekeyConfigs($configs, $fileInfo['filename']);
+				}
+				$this->_configs = array_merge($this->_configs, $configs);
 			}
 		}
 	}
@@ -57,6 +60,21 @@ class ConfigReader extends AppComponent
 	public function getConfigs()
 	{
 		return $this->_configs;
+	}
+
+	/**
+	 * Rekey the configs by prefixing with base namespace
+	 * @param  array  $configs Configuration array
+	 * @param  string $base    Prefixing namespace
+	 * @return array           Rekeyed configs array
+	 */
+	public function __rekeyConfigs($configs, $base)
+	{
+		$rekeyed = array();
+		foreach($configs as $key => $val) {
+			$rekeyedConfigs[$base.'.'.$key]
+		}
+
 	}
 
 }

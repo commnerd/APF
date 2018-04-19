@@ -25,4 +25,28 @@ abstract class AppComponent
             $this->app = $passedApp;
         }
     }
+
+    /**
+     * If not located in this component, look to the app
+     * @param  string $name The variable to retrieve
+     * @return mixed        The referenced variable
+     */
+    public function __get($name) {
+        if(isset($this->{$name}) {
+            return $this->{$name};
+        }
+        return $this->app->{$name};
+    }
+
+    /**
+     * If not located in this component, look to the app
+     * @param  string $name The variable to retrieve
+     * @return mixed        The corresponding return value
+     */
+    /*
+    public function __call($name, $args) {
+        return 
+        return $this->app->{$name};
+    }
+    */
 }

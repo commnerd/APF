@@ -8,7 +8,7 @@ use System\Components\DbConnection;
 /**
  * Model for use by the system
  */
-class Model extends AppComponent
+abstract class Model extends AppComponent
 {
 	/**
 	 * Deletion error exception message
