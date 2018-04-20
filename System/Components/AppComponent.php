@@ -2,6 +2,8 @@
 
 namespace System\Components;
 
+use System\Interfaces\App;
+
 abstract class AppComponent
 {
     /**
@@ -14,9 +16,9 @@ abstract class AppComponent
     /**
 	 * Constructor for app components
      *
-     * @param \System\App $app The context to bind  
+     * @param \System\Interfaces\App $app The context to bind
 	 */
-	public function __construct($passedApp = null) {
+	public function __construct(App $passedApp = null) {
         GLOBAL $app;
 
         $this->app = $app;
@@ -32,10 +34,9 @@ abstract class AppComponent
      * @return mixed        The referenced variable
      */
     public function __get($name) {
-        if(isset($this->{$name}) {
+        if(isset($this->{$name})) {
             return $this->{$name};
         }
-        return $this->app->{$name};
     }
 
     /**
@@ -45,7 +46,7 @@ abstract class AppComponent
      */
     /*
     public function __call($name, $args) {
-        return 
+        return
         return $this->app->{$name};
     }
     */

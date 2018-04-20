@@ -104,7 +104,17 @@ class App implements AppInterface
 	 */
 	public function sendResponse()
 	{
-		echo $this->{'\System\Components\Response'}->render();
+		$template = $this->{'\System\Components\Response'}->template;
+		$params = $this->{'\System\Components\Response'}->params;
+		echo $this->{'\System\Components\TemplateSystem'}->render($template, $params);
+	}
+
+	public function registerComponent(AppComponent $obj)
+	{
+		$class = get_class($obj);
+		if(!isset($this->{$class})) {
+			$this->{$class} = $obj;
+		}
 	}
 
 	/**
@@ -218,7 +228,7 @@ class App implements AppInterface
 		foreach($params as $param) {
 			$paramTypes[] = $param->getClass()->name;
 		}
-		
+
 		return $paramTypes;
 	}
 }

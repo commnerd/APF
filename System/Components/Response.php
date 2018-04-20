@@ -2,14 +2,23 @@
 
 namespace System\Components;
 
+use \System\Components\Response;
+
 class Response extends AppComponent
 {
-	private $_templateSystem;
+	private $_template;
 
-    public function render()
-    {
-        return $this->app->_templateSystem->render()
-    }
+	private $_data;
+
+	public function __construct($template, $data = array())
+	{
+		$this->_template = $template;
+		$this->_data = $data;
+	}
+
+	public function __get($name) {
+		return $this->{"_".$name};
+	}
 }
 
 ?>

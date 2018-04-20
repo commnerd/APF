@@ -2,12 +2,21 @@
 
 namespace System\Components\Templating;
 
-use System\Components\TemplatingSystem;
-
-class Driver extends TemplatingSystem
+class Driver
 {
-	public function __construct()
+	private $_system;
+
+	public function __construct($system)
 	{
-		
+		switch(strtolower($system)) {
+			case 'twig':
+			default:
+				$this->_system = new \Twig_Environment();
+		}
+	}
+
+	public function render($template, $params = array())
+	{
+		return $this->_system->render($template, $params);
 	}
 }

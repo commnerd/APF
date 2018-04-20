@@ -8,17 +8,19 @@ class TemplateSystem extends AppComponent
 {
 	private $_system;
 
-	protected $driver;
+	private $_driver;
 
 	public function __construct()
 	{
+		parent::__construct();
+
 		$this->_system = $this->app->config->get('templating.system');
 
-		$this->driver = new Driver($this->_system);
+		$this->_driver = new Driver($this->_system);
 	}
 
-	public function render($args)
+	public function render($template, $params)
 	{
-		$this->_system->render()
+		$this->_driver->render($template, $params);
 	}
 }

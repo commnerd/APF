@@ -68,13 +68,13 @@ class ConfigReader extends AppComponent
 	 * @param  string $base    Prefixing namespace
 	 * @return array           Rekeyed configs array
 	 */
-	public function __rekeyConfigs($configs, $base)
+	private function _rekeyConfigs($configs, $base)
 	{
 		$rekeyed = array();
 		foreach($configs as $key => $val) {
-			$rekeyedConfigs[$base.'.'.$key]
+			$rekeyed[$base.'.'.$key] = $val;
 		}
-
+		return $rekeyed;
 	}
 
 }
