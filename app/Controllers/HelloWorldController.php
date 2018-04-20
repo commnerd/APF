@@ -12,6 +12,6 @@ class HelloWorldController extends BaseController
         if(isset($request->target) && is_string($request->target)) {
             $target = $request->target;
         }
-        return $this->view('welcome');
+        return $this->view('welcome.html');
     }
 }

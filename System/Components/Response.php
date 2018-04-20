@@ -10,13 +10,16 @@ class Response extends AppComponent
 
 	private $_data;
 
-	public function __construct($template, $data = array())
+	public function __construct($template, $data)
 	{
 		$this->_template = $template;
 		$this->_data = $data;
 	}
 
 	public function __get($name) {
+		if(empty($this->{"_".$name})) {
+			return null;
+		}
 		return $this->{"_".$name};
 	}
 }
