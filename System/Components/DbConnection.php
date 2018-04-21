@@ -162,7 +162,7 @@ class DbConnection extends AppComponent
 			//print_r($ref);
 			$method = $ref->getMethod("bind_param");
 			//print_r($method);
-			$method->invokeArgs($stmt,$tempBindValArr);
+			$method->invokeArgs($stmt,$this->_refValues($tempBindValArr));
 
 			//call_user_func_array(array($stmt, 'bind_param'), $pTheBindVal);
 			//$stmt->bind_param("i", $pTheBindVal);
@@ -267,7 +267,7 @@ class DbConnection extends AppComponent
 			//print_r($ref);
 			$method = $ref->getMethod("bind_param");
 			//print_r($method);
-			$method->invokeArgs($stmt,$tempBindValArr);
+			$method->invokeArgs($stmt,$this->_refValues($tempBindValArr));
 
 			//call_user_func_array(array($stmt, 'bind_param'), $pTheBindVal);
 			//$stmt->bind_param("i", $pTheBindVal);
@@ -358,7 +358,16 @@ class DbConnection extends AppComponent
 //    	}
 
 //		$stmt->free_result();
-
+	private function _refValues($arr){
+	    if (strnatcmp(phpversion(),'5.3') >= 0) //Reference is required for PHP 5.3+
+	    {
+	        $refs = array();
+	        foreach($arr as $key => $value)
+	            $refs[$key] = &$arr[$key];
+	        return $refs;
+	    }
+	    return $arr;
+	}
 
 }
 

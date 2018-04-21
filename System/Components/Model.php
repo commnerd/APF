@@ -4,6 +4,7 @@ namespace System\Components;
 
 use System\Services\TextTransforms;
 use System\Components\DbConnection;
+use ReflectionClass;
 
 /**
  * Model for use by the system
@@ -77,7 +78,8 @@ abstract class Model extends AppComponent
 	public function __construct()
 	{
 		parent::__construct();
-		$this->_db = $this->app->getDbConnection();
+
+		$this->_db = $this->app->database;
 		$this->_attributes = array();
 
 		if(empty($this->table) || !is_string($this->table)) {
@@ -113,6 +115,19 @@ abstract class Model extends AppComponent
 	}
 
 	/**
+	 * Get the table for the model
+	 * @return string The table name for the model
+	 */
+	public function getTable()
+	{
+		if(isset($this->_table)) {
+			return $this->_table;
+		}
+		$reflect = new ReflectionClass($this);
+		return TextTransforms::camelCaseToSnakeCase($reflect->getShortName());
+	}
+
+	/**
 	 * Fill model from array
 	 *
 	 * @param  array  $attributes Array of items to populate model with
@@ -138,7 +153,7 @@ abstract class Model extends AppComponent
 		else {
 			$this->_attributes[$this->primaryKey] = $this->_insert();
 		}
-		foreach($this->attributes as $attribute => $value) {
+		foreach($this->_attributes as $attribute => $value) {
 			if($value instanceof Model) {
 				$value->save($cascade);
 			}
@@ -162,7 +177,8 @@ abstract class Model extends AppComponent
 	 * @return integer Primary key
 	 */
 	private function _insert() {
-		list($qry, $qryMap) = $this->_buildInsertComponents();
+		list($qry, $bindings) = $this->_buildInsertComponents();
+		$this->app->database->addRecord($qry, $bindings);
 	}
 
 	/**
@@ -211,7 +227,7 @@ abstract class Model extends AppComponent
 	 * @return array  Query and value map
 	 */
 	private function _buildInsertComponents() {
-		$qry = "INSERT INTO `$this->table` ('KEYS') VALUES ('VALS')";
+		$qry = "INSERT INTO `$this->table` (`KEYS`) VALUES (VALS)";
 		$qryMap = "";
 		$keys = array();
 		$values = array();

@@ -19,7 +19,7 @@ class Driver extends AppComponent
 			$config = $this->app->config;
 			$loader = new Twig_Loader_Filesystem($config->get('templating.paths'));
 			$this->_system = new Twig_Environment($loader, array(
-				'cache' => $config->get('templating.cache.path'),
+				// 'cache' => $config->get('templating.cache.path'),
 			));
 		}
 	}

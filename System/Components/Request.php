@@ -60,7 +60,10 @@ class Request extends AppComponent implements RequestInterface
 	 * @return string|array  The corresponding data
 	 */
 	public function __get($name) {
-		return $this->_arguments[$name];
+		if(isset($this->_arguments[$name])) {
+			return $this->_arguments[$name];
+		}
+		return null;
 	}
 
 	/**
@@ -91,6 +94,16 @@ class Request extends AppComponent implements RequestInterface
 	public function getUrl()
 	{
 		return $this->_requestUrl;
+	}
+
+	/**
+	 * Return array of arguments
+	 *
+	 * @return array The array of passed arguments
+	 */
+	public function toArray()
+	{
+		return $this->_arguments;
 	}
 }
 

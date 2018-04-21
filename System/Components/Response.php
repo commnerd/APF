@@ -8,12 +8,12 @@ class Response extends AppComponent
 {
 	private $_template;
 
-	private $_data;
+	private $_params;
 
-	public function __construct($template, $data)
+	public function __construct($template, $params)
 	{
 		$this->_template = $template;
-		$this->_data = $data;
+		$this->_params = $params;
 	}
 
 	public function __get($name) {

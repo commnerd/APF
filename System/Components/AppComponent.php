@@ -15,17 +15,11 @@ abstract class AppComponent
 
     /**
 	 * Constructor for app components
-     *
-     * @param \System\Interfaces\App $app The context to bind
 	 */
-	public function __construct(App $passedApp = null) {
+	public function __construct() {
         GLOBAL $app;
 
         $this->app = $app;
-
-        if(isset($passedApp)) {
-            $this->app = $passedApp;
-        }
     }
 
     /**

@@ -6,6 +6,7 @@ use System\Interfaces\App as AppInterface;
 use System\Services\DirectoryScanner;
 use System\Components\AppComponent;
 use System\Components\ConfigReader;
+use System\Components\DbConnection;
 use System\Components\Config;
 use System\Components\Router;
 use System\Components\Route;
@@ -36,6 +37,7 @@ class App implements AppInterface
 	 */
 	public function __construct()
 	{
+		$GLOBALS['app'] = $this;
 		$configClass = "\System\Components\Config";
 		$this->_componentAliasMap['config'] = $configClass;
 		$this->_componentMap[$configClass] = new $configClass();
@@ -92,6 +94,7 @@ class App implements AppInterface
 		$this->_setupRequest();
 		$this->_loadConfigs();
 		$this->_loadRoutes();
+		$this->_loadDb();
 		$this->_runMiddlewares();
 		$route = $this->_getMappedRoute();
 		$this->_loadResponse($route);
@@ -104,6 +107,9 @@ class App implements AppInterface
 	 */
 	public function sendResponse()
 	{
+		if(!isset($this->{'\System\Components\Response'})) {
+			return;
+		}
 		$template = $this->{'\System\Components\Response'}->template;
 		$params = $this->{'\System\Components\Response'}->params;
 		echo $this->{'\System\Components\TemplateSystem'}->render($template, $params);
@@ -156,6 +162,17 @@ class App implements AppInterface
 		}
 		$this->_componentMap['\System\Components\Router'] = $router;
 
+	}
+
+	/**
+	 * Load the database object
+	 * @return void
+	 */
+	private function _loadDb()
+	{
+		$this->_componentMap['\System\Components\DbConnection'] =
+			new DbConnection('test', 'test', 'localhost', 'test', '3306');
+		$this->_componentAliasMap['database'] = '\System\Components\DbConnection';
 	}
 
 	/**

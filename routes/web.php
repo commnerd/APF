@@ -1,7 +1,8 @@
 <?php
 
 return array(
-    array('GET','/', 'HelloWorldController#index', 'home'),
+	array('GET', '/', '\App\Controllers\HelloWorldController#index', 'home'),
+	array('POST', '/', '\App\Controllers\HelloWorldController#store', 'store'),
 );
 
 ?>
