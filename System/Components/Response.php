@@ -3,24 +3,38 @@
 namespace System\Components;
 
 use \System\Components\Response;
+use ErrorException;
 
-class Response extends AppComponent
+class Response extends PackageComponent
 {
-	private $_template;
+	const TYPE_TEMPLATE       = "template";
+	const TYPE_REDIRECT       = "redirect";
 
-	private $_params;
+	const ERROR_TYPE_REDIRECT = "The redirect must have an associated route.";
 
-	public function __construct($template, $params)
+	protected $_code = 200;
+	
+	protected $_type = "template";
+
+	protected $_template;
+
+	protected $_params;
+
+	public function __construct($params)
 	{
-		$this->_template = $template;
-		$this->_params = $params;
-	}
-
-	public function __get($name) {
-		if(empty($this->{"_".$name})) {
-			return null;
+		foreach(get_object_vars($this) as $key => $val) {
+			$paramKey = substr($key, 1);
+			if(isset($params[$paramKey])) {
+				$this->{$key} = $params[$paramKey];
+				unset($params[$paramKey]);
+			}
 		}
-		return $this->{"_".$name};
+
+		$this->_params = $params;
+
+		if($this->_type === self::TYPE_REDIRECT && !isset($params['route'])) {
+			throw new ErrorException(self::ERROR_TYPE_REDIRECT);
+		}
 	}
 }
 

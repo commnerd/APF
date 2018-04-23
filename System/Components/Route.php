@@ -17,10 +17,9 @@ class Route
 
 	private $_params;
 
-
 	/**
 	 * The constructor for the route
-	 * 
+	 *
 	 * @param array $routeDef Array defining the route
 	 */
     public function __construct($routeDef)
@@ -50,9 +49,9 @@ class Route
 
     /**
      * Getter for private vars
-     * 
+     *
      * @param  string $label The variable you want to get
-     * @return string|array  The value for that variable         
+     * @return string|array  The value for that variable
      */
     public function __get($label)
     {

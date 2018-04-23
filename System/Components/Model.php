@@ -4,6 +4,7 @@ namespace System\Components;
 
 use System\Services\TextTransforms;
 use System\Components\DbConnection;
+use System\Components\QueryBuilder;
 use ReflectionClass;
 
 /**
@@ -24,6 +25,13 @@ abstract class Model extends AppComponent
 	 * @var string
 	 */
 	const ERROR_EXCEPTION_UPDATE = "No context for update.";
+
+	/**
+	 * Build queries to pass to the database handler
+	 *
+	 * @var QueryBuilder
+	 */
+	private $_queryBuilder;
 
 	/**
 	 * The database connection to work with
@@ -72,6 +80,47 @@ abstract class Model extends AppComponent
 	 */
 	protected $fillable;
 
+	public static function all()
+	{
+		GLOBAL $app;
+
+		$return = array();
+
+		$class = get_called_class();
+
+		$obj = new $class();
+
+		$queryBuilder = new QueryBuilder($obj->getTable(), $obj->getPrimaryKey());
+
+		$query = $queryBuilder->select();
+
+		$results = $app->database->getCustomQueries($query);
+
+		foreach($results as $row) {
+			$obj = new $class();
+			$return[] = $obj->fill($row)->toArray();
+		}
+
+		return $return;
+	}
+
+	/**
+	 * Static method that leverages QueryBuilder
+	 * @param  string $method      The name of the QueryBuilder method to call
+	 * @param  array  $args        Arguments to pass to the method
+	 * @return array|QueryBuilder  Result set or QueryBuilder
+	 */
+	public static function __callStatic($method, $args)
+	{
+		$class = get_called_class();
+
+		$obj = new $class();
+
+		$result = call_user_func_array(array($obj, $method), $args);
+
+		return $result;
+	}
+
 	/**
 	 * Constructor for the class
 	 */
@@ -79,7 +128,9 @@ abstract class Model extends AppComponent
 	{
 		parent::__construct();
 
+		$this->_queryBuilder = new QueryBuilder($this->getTable(), $this->getPrimaryKey());
 		$this->_db = $this->app->database;
+
 		$this->_attributes = array();
 
 		if(empty($this->table) || !is_string($this->table)) {
@@ -116,6 +167,7 @@ abstract class Model extends AppComponent
 
 	/**
 	 * Get the table for the model
+	 *
 	 * @return string The table name for the model
 	 */
 	public function getTable()
@@ -128,15 +180,26 @@ abstract class Model extends AppComponent
 	}
 
 	/**
+	 * Get the primary key for the model
+	 *
+	 * @return string The column representing the primary key
+	 */
+	public function getPrimaryKey()
+	{
+		return $this->primaryKey;
+	}
+
+	/**
 	 * Fill model from array
 	 *
 	 * @param  array  $attributes Array of items to populate model with
-	 * @return void
+	 * @return Model              Whatever was just filled
 	 */
 	public function fill($attributes) {
 		foreach($this->fillable as $key) {
 			$this->_attributes[$key] = $attributes[$key];
 		}
+		return $this;
 	}
 
 	/**
@@ -162,26 +225,6 @@ abstract class Model extends AppComponent
 	}
 
 	/**
-	 * Update model in the database
-
-	 * @return void
-	 */
-	private function _update() {
-		list($qry, $qryMap) = $this->_buildUpdateComponents();
-
-	}
-
-	/**
-	 * Insert model into the database
-	 *
-	 * @return integer Primary key
-	 */
-	private function _insert() {
-		list($qry, $bindings) = $this->_buildInsertComponents();
-		$this->app->database->addRecord($qry, $bindings);
-	}
-
-	/**
 	 * Delete a given record
 	 *
 	 * @param boolean $cascade  If true, delete children and all subchildren
@@ -197,6 +240,41 @@ abstract class Model extends AppComponent
 				$value->delete($cascade);
 			}
 		}
+	}
+
+	/**
+	 * Return all values as array
+	 *
+	 * @return array All attributes
+	 */
+	public function toArray()
+	{
+		return $this->_attributes;
+	}
+
+	public function readFromDatabase(DbQuery $query)
+	{
+		return $this->_db->getCustomQueries($query);
+	}
+
+	/**
+	 * Update model in the database
+	 *
+	 * @return void
+	 */
+	private function _update() {
+		$query = $this->_queryBuilder->update($this->toArray());
+		$this->_db->updateRecord($query);
+	}
+
+	/**
+	 * Insert model into the database
+	 *
+	 * @return integer Primary key
+	 */
+	private function _insert() {
+		$query = $this->_queryBuilder->insert($this->toArray());
+		$this->_db->addRecord($query);
 	}
 
 	/**
@@ -221,62 +299,15 @@ abstract class Model extends AppComponent
 		}
 	}
 
-	/**
-	 * Automagically build the insert query and associated value map
-	 *
-	 * @return array  Query and value map
-	 */
-	private function _buildInsertComponents() {
-		$qry = "INSERT INTO `$this->table` (`KEYS`) VALUES (VALS)";
-		$qryMap = "";
-		$keys = array();
-		$values = array();
-		$questionMarks = array();
-		foreach($this->_attributes as $key => $value) {
-			$qryMap .= $this->_getQryMapValueType($value);
-			array_push($keys, $key);
-			array_push($values, $value);
-			array_push($questionMarks, '?');
-		}
-		$qry = preg_replace('/KEYS/', implode('`,`', $keys), $qry);
-		$qry = preg_replace('/VALS/', implode(",", $questionMarks), $qry);
-
-		return array($qry, array_merge(array($qryMap), $values));
-	}
-
-	/**
-	 * Automagically build the update query and associated value map
-	 *
-	 * @return array  Query and value map
-	 */
-	private function _buildUpdateComponents() {
-		$qry = "UPDATE `$this->table` SET UPDATES WHERE `$this->primaryKey` = ?";
-		$qryMap = "";
-		$updates = "";
-		foreach($this->_attributes as $key => $value) {
-			if($key !== $this->primaryKey) {
-				$qryMap .= $this->_getQryMapValueType($value);
-				$updates = "`$key` = ?";
+	private function _runQuery($queryAndBindings)
+	{
+		if(is_array($queryAndBindings)) {
+			$query = $queryAndBindings[0];
+			$bindings = null;
+			if(sizeof($queryAndBindings) === 2) {
+				$bindings = $queryAndBindings[1];
 			}
+			return $app->database->getCustomQuery($query, $bindings);
 		}
-		$qryMap .= "i";
-		$values[] = $this->_attributes[$this->primaryKey];
-
-		$qry = preg_replace('/VALS/', implode("', '", $updates), $qry);
-
-		return array($qry, array_merge(array($qryMap), $values));
-	}
-
-	/**
-	 * Map value to query map character
-	 *
-	 * @param  mixed  $value The value to be mapped
-	 * @return char          The character representing the DB type
-	 */
-	private function _getQryMapValueType($value) {
-		if(is_integer($value)) {
-			return "i";
-		}
-		return "s";
 	}
 }

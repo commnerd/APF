@@ -54,19 +54,6 @@ class Request extends AppComponent implements RequestInterface
 	}
 
 	/**
-	 * Get a parameter passed in from the request
-	 *
-	 * @param  string $name  The label for the corresponding argument
-	 * @return string|array  The corresponding data
-	 */
-	public function __get($name) {
-		if(isset($this->_arguments[$name])) {
-			return $this->_arguments[$name];
-		}
-		return null;
-	}
-
-	/**
 	 * Retrieve header information
 	 *
 	 * @param  string $name The name of the header to retrieve
