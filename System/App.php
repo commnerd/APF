@@ -107,12 +107,19 @@ class App implements AppInterface
 	 */
 	public function sendResponse()
 	{
-		if(!isset($this->{'\System\Components\Response'})) {
-			return;
+		$response = $this->{'\System\Components\Response'};
+		$type = $response->type;
+		$params = $response->params;
+		switch($type) {
+			case $response::TYPE_REDIRECT:
+				echo $params['route'];
+				header('Location: '.$params['route']);
+				http_response_code($response->code);
+				break;
+			default:
+				echo $this->{'\System\Components\TemplateSystem'}->render($response->template, $params);
+				break;
 		}
-		$template = $this->{'\System\Components\Response'}->template;
-		$params = $this->{'\System\Components\Response'}->params;
-		echo $this->{'\System\Components\TemplateSystem'}->render($template, $params);
 	}
 
 	public function registerComponent(AppComponent $obj)
@@ -161,7 +168,7 @@ class App implements AppInterface
 			$router->addRoutes(include($file));
 		}
 		$this->_componentMap['\System\Components\Router'] = $router;
-
+		$this->_componentAliasMap['router'] = '\System\Components\Router';
 	}
 
 	/**

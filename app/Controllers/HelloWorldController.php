@@ -9,7 +9,9 @@ class HelloWorldController extends BaseController
 {
     public function index(Request $request)
     {
-        return $this->view('welcome.html');
+        return $this->view('welcome.html', array(
+            'sections' => Section::all()
+        ));
     }
 
     public function store(Request $request)
@@ -19,5 +21,7 @@ class HelloWorldController extends BaseController
         $section->fill($request->toArray());
 
         $section->save();
+
+        return $this->redirect('home');
     }
 }

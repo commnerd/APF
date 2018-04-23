@@ -2,3 +2,9 @@
     <input name="LABEL" type="text" />
     <input type="submit">
 </form>
+
+<ul>
+    {% for section in sections %}
+    <li>{{ section.LABEL }}</li>
+    {% endfor %}
+</ul>

@@ -70,9 +70,11 @@ class DbConnection extends AppComponent
 
     }
 
-     public function getCustomQueries($pSQL,$pTheBindVal) {
+     public function getCustomQueries(DbQuery $query) {
+		$pSQL = $query->query;
+ 		$pTheBindVal = $query->bindings;
 		$stmt = $this->connection->prepare($pSQL);
-		if (!is_null($pTheBindVal)) {
+		if (!empty($pTheBindVal)) {
 			call_user_func_array(array($stmt, 'bind_param'), $pTheBindVal);
 			//$stmt->bind_param("i", $pTheBindVal);
 		}
@@ -117,7 +119,7 @@ class DbConnection extends AppComponent
 	    {
 
 	        while($stmt->fetch())
-	            $dataArray = $this->getTheObject($row,$pTheClass);
+	            $dataArray = $row;
 
 	    }
 	    $stmt->close();
@@ -129,8 +131,9 @@ class DbConnection extends AppComponent
 
     }
 
-    public function getRecords($pSQL,$pReqID,$pTheClass,$pTheBindVal) {
+    public function getRecords($pSQL,$pReqID,$pTheBindVal) {
 		$stmt = $this->connection->prepare($pSQL);
+
 		if (!is_null($pTheBindVal)) {
 			call_user_func_array(array($stmt, 'bind_param'), $pTheBindVal);
 			//$stmt->bind_param("i", $pTheBindVal);
@@ -140,7 +143,7 @@ class DbConnection extends AppComponent
 	    if(!$stmt->error)
 	    {
 	        while($stmt->fetch())
-	            $dataArray[$row[$pReqID]] = $this->getTheObject($row,$pTheClass);
+	            $dataArray[$row[$pReqID]] = $row;
 	    }
 	    $stmt->close();
 	    if (isset($dataArray)) {
@@ -150,7 +153,9 @@ class DbConnection extends AppComponent
 	    }
     }
 
-    public function addRecord($pSQL,$pTheBindVal) {
+    public function addRecord(DbQuery $query) {
+		$pSQL = $query->query;
+		$pTheBindVal = $query->bindings;
     	$tempBindValArr = implode("||", $pTheBindVal);
     	$tempBindValArr = explode("||", $tempBindValArr);
 		//var_dump($pSQL);
@@ -257,7 +262,9 @@ class DbConnection extends AppComponent
 	    return $newID;
     }
 
-    public function updateRecord($pSQL,$pTheBindVal) {
+    public function updateRecord(DbQuery $query) {
+		$pSQL = $query->query;
+		$pTheBindVal = $query->bindings;
     	$tempBindValArr = implode("||", $pTheBindVal);
     	$tempBindValArr = explode("||", $tempBindValArr);
 		$stmt = $this->connection->prepare($pSQL);
@@ -307,6 +314,7 @@ class DbConnection extends AppComponent
 	    }
 
 	    call_user_func_array(array($stmt, 'bind_result'), $params);
+
 	    return $result;
 	}
 
@@ -316,14 +324,6 @@ class DbConnection extends AppComponent
 	private function getCopy($row)
 	{
 	    return array_map(function ($a){return $a;}, $row);
-	}
-
-	private function getTheObject($row,$theClass)
-	{
-		$theClass = "App\\Models\\".$theClass;
-		$tempObject = new $theClass;
-		$tempObject->addDbData($row);
-	    return $tempObject;
 	}
 
 //		if (!($stmt = $this->connection->prepare($pSQL))) {
