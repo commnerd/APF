@@ -72,7 +72,7 @@ class QueryBuilder extends AppComponent
 
     public function find($id)
     {
-        $this->_where[$this->_obj->getPrimaryKey()] = $id;
+        $this->_where[$this->_obj->getPrimaryKeyColumn()] = $id;
 
         return $this->_buildSelectComponents();
     }

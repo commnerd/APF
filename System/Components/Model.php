@@ -5,6 +5,7 @@ namespace System\Components;
 use System\Services\TextTransforms;
 use System\Components\DbConnection;
 use System\Components\QueryBuilder;
+use System\Interfaces\Relationship;
 use ReflectionClass;
 
 /**
@@ -90,7 +91,7 @@ abstract class Model extends AppComponent
 
 		$obj = new $class();
 
-		$queryBuilder = new QueryBuilder($obj->getTable(), $obj->getPrimaryKey());
+		$queryBuilder = new QueryBuilder($obj->getTable(), $obj->getPrimaryKeyColumn());
 
 		$query = $queryBuilder->select();
 
@@ -128,7 +129,7 @@ abstract class Model extends AppComponent
 	{
 		parent::__construct();
 
-		$this->_queryBuilder = new QueryBuilder($this->getTable(), $this->getPrimaryKey());
+		$this->_queryBuilder = new QueryBuilder($this->getTable(), $this->getPrimaryKeyColumn());
 		$this->_db = $this->app->database;
 
 		$this->_attributes = array();
@@ -151,6 +152,13 @@ abstract class Model extends AppComponent
 	 */
 	public function __get($name)
 	{
+		$methods = get_class_methods(get_class($this));
+		if(in_array($name, $methods)) {
+			$relationship = $this->{$name}();
+			if($relationship instanceof Relationship) {
+				return $relationship->fetch();
+			}
+		}
 		return $this->_attributes[$name];
 	}
 
@@ -163,6 +171,44 @@ abstract class Model extends AppComponent
 	public function __set($name, $value)
 	{
 		$this->_attributes[$name] = $value;
+	}
+
+	/**
+	 * Grab the related model
+	 * @param  string  $class      The related class
+	 * @param  string  $foreignKey The foreign key to use in lookup
+	 * @param  string  $table      The table to look in if needing override
+	 * @return Model			   The associated model             
+	 */
+	public function hasOne($class, $foreignKey = null, $table = null)
+	{
+		$relationship = new HasOne($this, $class, $foreignKey, $table);
+		return $relationship->fetch();
+	}
+
+	/**
+	 * Grab the related models
+	 * @param  string  $class      The related class
+	 * @param  string  $foreignKey The foreign key to use in lookup
+	 * @param  string  $table      The table to look in if needing override
+	 * @return Model			   The associated model             
+	 */
+	public function hasMany($class, $foreignKey = null, $table = null)
+	{
+		$relationship = new HasMany($this, $class, $foreignKey, $table);
+		return $relationship->fetch();
+	}
+
+	public function belongsTo($class, $foreignKey = null, $table = null)
+	{
+		$relationship = new BelongsTo($this, $class, $foreignKey, $table);
+		return $relationship->fetch();
+	}
+
+	public function belongsToMany($class, $foreignKey = null, $table = null)
+	{
+		$relationship = new BelongsToMany($this, $class, $foreignKey, $table);
+		return $relationship->fetch();
 	}
 
 	/**
@@ -187,6 +233,16 @@ abstract class Model extends AppComponent
 	public function getPrimaryKey()
 	{
 		return $this->primaryKey;
+	}
+
+	/**
+	 * Get the primary key value for the model
+	 * 
+	 * @return integer The ID for the given model
+	 */
+	public function getPrimaryKeyValue()
+	{
+		return $this->_attributes[$this->primaryKey];
 	}
 
 	/**

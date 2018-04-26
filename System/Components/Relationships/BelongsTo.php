@@ -2,7 +2,7 @@
 
 namespace System\Components\Relationships;
 
-class BelongsToMany extends Relationship
+class BelongsTo extends Relationship
 {
 	/**
      * Fetch the related object
