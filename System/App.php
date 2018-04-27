@@ -231,18 +231,10 @@ class App implements AppInterface
 	 */
 	private function _loadResponse(Route $route)
 	{
-		$params = array();
 		$controller = $route->controller;
 		$method = $route->method;
 		$paramTypes = $this->_getParamTypes($controller, $method);
-		foreach($paramTypes as $type) {
-			if($type === "scalar") {
-				return 1;
-			}
-			else {
-				$params[] = $this->{$type};
-			}
-		}
+		$params = $this->_getParamValues($paramTypes);
 		$obj = new $controller();
 		$this->{"\System\Components\Response"} = call_user_func_array( array($obj, $method), $params );
 		// exit("<pre>".print_r($this->{"\System\Components\Response"}, true)."</pre>");
@@ -257,8 +249,10 @@ class App implements AppInterface
 	private function _getParamTypes($controller, $method)
 	{
 		$class = new ReflectionClass($controller);
+
 		$params = $class->getMethod($method)->getParameters();
 		$paramTypes = array();
+
 		foreach($params as $param) {
 			if(!is_object($param->getClass())) {
 				$paramTypes[] = "scalar";
@@ -269,5 +263,19 @@ class App implements AppInterface
 		}
 
 		return $paramTypes;
+	}
+
+	private function _getParamValues($paramTypes) {
+		$routeParams = $this->_getMappedRoute()->params;
+		$params = array();
+		foreach($paramTypes as $position => $type) {
+			if($type === "scalar") {
+				$params[] = array_shift($routeParams);
+			}
+			else {
+				$params[] = $this->{$type};
+			}
+		}
+		return $params;
 	}
 }

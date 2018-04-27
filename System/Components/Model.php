@@ -117,6 +117,10 @@ abstract class Model extends AppComponent
 
 		$obj = new $class();
 
+		$queryBuilder = new QueryBuilder($obj->getTable(), $obj->getPrimaryKeyColumn());
+
+		$query = $queryBuilder->{$method}();
+
 		$result = call_user_func_array(array($obj, $method), $args);
 
 		return $result;
@@ -294,7 +298,7 @@ abstract class Model extends AppComponent
 	 * @param boolean $cascade  If true, delete children and all subchildren
 	 * @return void
 	 */
-	public function delete($cascade = false)
+	public function ___delete($cascade = false)
 	{
 		if(empty($this->primaryKey)) {
 			throw new \ErrorException(self::ERROR_EXCEPTION_DELETE);
@@ -304,6 +308,8 @@ abstract class Model extends AppComponent
 				$value->delete($cascade);
 			}
 		}
+		$query = $this->_queryBuilder->delete($this->toArray());
+		$this->_db->deleteRecord($query);
 	}
 
 	/**

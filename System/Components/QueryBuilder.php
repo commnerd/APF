@@ -231,6 +231,7 @@ class QueryBuilder extends AppComponent
 	private function _buildUpdateComponents() {
 		$qry = "UPDATE `".$this->_table."` SET ";
         $qryMap = "";
+        $values = array();
 
         $updates = $this->_obj->toArray();
         unset($updates[$this->_primaryKey]);
@@ -247,11 +248,37 @@ class QueryBuilder extends AppComponent
 
         $qry .= "`".$this->_primaryKey."` = ?";
 
-        $updates = "`$key` = ?";
         $qryMap .= "i";
 
 		return new DbQuery($qry, array_merge(array($qryMap), $values));
 	}
+
+    /**
+     * Automagically build the delete query and associated value map
+     *
+     * @return DbQuery  Query and value map
+     */
+    private function _buildDeleteComponents()
+    {
+        $qry = "DELETE FROM `".$this->_table."`";
+        $qryMap = "";
+        $values = array();
+
+        $qry .= " WHERE ";
+
+        list($qryUpdate, $qryMapUpdate) = $this->_inputBuilder("where");
+        $qry .= $qryUpdate;
+        $qryMap .= $qryMapUpdate;
+
+        $qry .= "`".$this->_primaryKey."` = ?";
+        exit(print_r($this->_where, true));
+        if($this->_where[$this->_primaryKey]) {
+            $values[] = $this->_where[$this->_primaryKey];
+        }
+
+        $qryMap .= "i";
+        return new DbQuery($qry, array_merge(array($qryMap), $values));
+    }
 
     /**
      * A generic `key` = 'val' pair builder
@@ -261,6 +288,7 @@ class QueryBuilder extends AppComponent
      */
     private function _inputBuilder($section) {
         $qryMap = "";
+        $subQry = "";
         $array = ($section === "updates") ? $this->_columns : $this->{"_".$section};
         foreach($array as $key => $map) {
             $value = $this->_getValue($section, $value);
