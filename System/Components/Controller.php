@@ -23,10 +23,17 @@ class Controller extends AppComponent
 	public function redirect($name, $params = array())
 	{
 		$router = $this->_router;
+		$route = "";
+		if(preg_match('/^(prev|back$)/', $name)) {
+			$route = $_SERVER['HTTP_REFERER'];
+		}
+		else {
+			$route = $router->generate($name, $params);
+		}
 
 		return new Response(array(
 			'type' => Response::TYPE_REDIRECT,
-			'route' => $router->generate($name, $params),
+			'route' => $route,
 			'code' => 302,
 		));
 	}

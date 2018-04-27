@@ -51,6 +51,10 @@ class App implements AppInterface
 	 */
 	public function __get($name)
 	{
+		if($name === "scalar") {
+			return null;
+		}
+
 		if(!empty($this->_componentAliasMap[$name])) {
 			$name = $this->_componentAliasMap[$name];
 		}
@@ -232,10 +236,16 @@ class App implements AppInterface
 		$method = $route->method;
 		$paramTypes = $this->_getParamTypes($controller, $method);
 		foreach($paramTypes as $type) {
-			$params[] = $this->{$type};
+			if($type === "scalar") {
+				return 1;
+			}
+			else {
+				$params[] = $this->{$type};
+			}
 		}
 		$obj = new $controller();
 		$this->{"\System\Components\Response"} = call_user_func_array( array($obj, $method), $params );
+		// exit("<pre>".print_r($this->{"\System\Components\Response"}, true)."</pre>");
 	}
 
 	/**
@@ -250,7 +260,12 @@ class App implements AppInterface
 		$params = $class->getMethod($method)->getParameters();
 		$paramTypes = array();
 		foreach($params as $param) {
-			$paramTypes[] = $param->getClass()->name;
+			if(!is_object($param->getClass())) {
+				$paramTypes[] = "scalar";
+			}
+			else {
+				$paramTypes[] = $param->getClass()->name;
+			}
 		}
 
 		return $paramTypes;

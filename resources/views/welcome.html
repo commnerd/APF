@@ -5,6 +5,6 @@
 
 <ul>
     {% for section in sections %}
-    <li>{{ section.LABEL }}</li>
+    <li>{{ section.LABEL }} <a href="{{ route('sections.destroy', { 'ID': section.ID }) }}?_method=DELETE">Delete</a></li>
     {% endfor %}
 </ul>

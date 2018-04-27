@@ -2,6 +2,7 @@
 
 namespace System\Components;
 
+use System\Services\TextTransforms;
 use AltoRouter;
 
 class Router extends AltoRouter
@@ -16,7 +17,7 @@ class Router extends AltoRouter
 		"store" => "POST",
 		"edit" => "GET",
 		"update" => "PUT",
-		"delete" => "DELETE",
+		"destroy" => "DELETE",
 	);
 
 	public function __construct(\System\App $app = null)
@@ -30,7 +31,7 @@ class Router extends AltoRouter
 		return parent::match($requestUrl, $requestMethod);
 	}
 
-	public function addRoutes(array $routes)
+	public function addRoutes($routes)
 	{
 		$resourceRoutes = array();
 		foreach($routes as $index => $route) {
@@ -38,32 +39,36 @@ class Router extends AltoRouter
 			if($route[0] === self::METHOD_RESOURCE) {
 				$resourceRoutes[] = $index;
 				$breakout = array();
-				foreach($methods as $method) {
-					if(isset($this->$_controllerMethods[$method])) {
-						$path = ($route[1][0] === "/") ? $route[1] : "/".$route[1];
-						if($method === "create") {
-							$path .= "/create";
+				if(!empty($methods)) {
+					foreach($methods as $method) {
+						if(isset($this->_controllerMethods[$method])) {
+							$singlizedName = TextTransforms::pluralToSingle($route[1]);
+							$path = ($route[1][0] === "/") ? $route[1] : "/".$route[1];
+							if($method === "create") {
+								$path .= "/create";
+							}
+							if(in_array($method, array("edit", "update", "destroy"))) {
+								$path .= "/[i:ID]";
+							}
+							if($method === "edit") {
+								$path .= "/edit";
+							}
+							parent::addRoutes(array(array(
+								$this->_controllerMethods[$method],
+								$path,
+								$route[2]."#".$method,
+								$route[1].".".$method
+							)));
 						}
-						if(in_array($method, array("edit", "create", "update"))) {
-							$path .= "/{".$route[1]."}";
-						}
-						if($method === "edit") {
-							$path .= "/edit";
-						}
-						parent::addRoutes(array(
-							$this->$_controllerMethods[$method],
-							$path,
-							$class."#".$method,
-							$route[1].".".$method
-						));
 					}
 				}
 			}
 		}
-		for($i = sizeof($resourceRoutes); $i >= 0; $i--) {
-			array_splice($routes, $resourceRoutes[$i], 1);
+		if(!empty($resourceRoutes)) {
+			for($i = sizeof($resourceRoutes) - 1; $i >= 0; $i--) {
+				array_splice($routes, $resourceRoutes[$i], 1);
+			}
 		}
 		parent::addRoutes($routes);
 	}
-
 }

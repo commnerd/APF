@@ -178,7 +178,7 @@ abstract class Model extends AppComponent
 	 * @param  string  $class      The related class
 	 * @param  string  $foreignKey The foreign key to use in lookup
 	 * @param  string  $table      The table to look in if needing override
-	 * @return Model			   The associated model             
+	 * @return Model			   The associated model
 	 */
 	public function hasOne($class, $foreignKey = null, $table = null)
 	{
@@ -191,7 +191,7 @@ abstract class Model extends AppComponent
 	 * @param  string  $class      The related class
 	 * @param  string  $foreignKey The foreign key to use in lookup
 	 * @param  string  $table      The table to look in if needing override
-	 * @return Model			   The associated model             
+	 * @return Model			   The associated model
 	 */
 	public function hasMany($class, $foreignKey = null, $table = null)
 	{
@@ -230,17 +230,17 @@ abstract class Model extends AppComponent
 	 *
 	 * @return string The column representing the primary key
 	 */
-	public function getPrimaryKey()
+	public function getPrimaryKeyColumn()
 	{
 		return $this->primaryKey;
 	}
 
 	/**
 	 * Get the primary key value for the model
-	 * 
+	 *
 	 * @return integer The ID for the given model
 	 */
-	public function getPrimaryKeyValue()
+	public function getPrimaryKey()
 	{
 		return $this->_attributes[$this->primaryKey];
 	}
@@ -249,11 +249,19 @@ abstract class Model extends AppComponent
 	 * Fill model from array
 	 *
 	 * @param  array  $attributes Array of items to populate model with
+	 * @param  Model  $obj        An instance of the object making the call to
+	 * 							  ensure only this object can fill liberally
 	 * @return Model              Whatever was just filled
 	 */
 	public function fill($attributes) {
-		foreach($this->fillable as $key) {
-			$this->_attributes[$key] = $attributes[$key];
+		if($this->_calledFromSystem()) {
+			$this->_attributes = $attributes;
+			$this->_originalValues = $attributes;
+		}
+		else {
+			foreach($this->fillable as $key) {
+				$this->_attributes[$key] = $attributes[$key];
+			}
 		}
 		return $this;
 	}
@@ -365,5 +373,12 @@ abstract class Model extends AppComponent
 			}
 			return $app->database->getCustomQuery($query, $bindings);
 		}
+	}
+
+	private function _calledFromSystem()
+	{
+		$trace = debug_backtrace();
+
+		return preg_match('/^System/', $trace[2]['class']);
 	}
 }
