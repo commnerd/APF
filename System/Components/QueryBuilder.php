@@ -87,10 +87,10 @@ class QueryBuilder extends AppComponent
     public function where($column, $op, $value = null)
     {
         if(empty($value)) {
-            $this->_where[] = array('AND', $column, $op);
+            $this->_where[] = array(' AND ', $column, $op);
             return $this;
         }
-        $this->_where[] = array('AND', $column, $op, $value);
+        $this->_where[] = array(' AND ', $column, $op, $value);
         return $this;
     }
 
@@ -260,24 +260,14 @@ class QueryBuilder extends AppComponent
      */
     private function _buildDeleteComponents()
     {
-        $qry = "DELETE FROM `".$this->_table."`";
+        $qry = "DELETE FROM `".$this->_table."` WHERE ";
         $qryMap = "";
-        $values = array();
-
-        $qry .= " WHERE ";
 
         list($qryUpdate, $qryMapUpdate) = $this->_inputBuilder("where");
         $qry .= $qryUpdate;
-        $qryMap .= $qryMapUpdate;
+        $qryMap .= array_shift($qryMapUpdate);
 
-        $qry .= "`".$this->_primaryKey."` = ?";
-        exit(print_r($this->_where, true));
-        if($this->_where[$this->_primaryKey]) {
-            $values[] = $this->_where[$this->_primaryKey];
-        }
-
-        $qryMap .= "i";
-        return new DbQuery($qry, array_merge(array($qryMap), $values));
+        return new DbQuery($qry, array_merge(array($qryMap), array_splice($qryMapUpdate, 0, 1)));
     }
 
     /**
@@ -289,15 +279,20 @@ class QueryBuilder extends AppComponent
     private function _inputBuilder($section) {
         $qryMap = "";
         $subQry = "";
+        $values = array();
         $array = ($section === "updates") ? $this->_columns : $this->{"_".$section};
+        $addGlue = false;
         foreach($array as $key => $map) {
-            $value = $this->_getValue($section, $value);
+            $meta = $this->_getMetaFromMap($section, $map);
             if($key !== $this->_primaryKey) {
-                $qryMap .= $this->_getQryMapValueType($value);
-                $subQry .= "`$key` = ?";
+                $glue = $addGlue ? $meta[0] : "";
+                $qryMap .= $meta[1];
+                $values[] = $meta[2];
+                $subQry .= $glue.$meta[3];
+                $addGlue = true;
             }
         }
-        return array($subQry, $qryMap);
+        return array($subQry, array_merge(array($qryMap), $values));
     }
 
 	/**
@@ -328,7 +323,9 @@ class QueryBuilder extends AppComponent
             case 'where':
                 $value = $map[sizeof($map) - 1];
                 $modifier = $map[0];
-                return $map[sizeof($map) - 1];
+                $column = $map[1];
+                $op = sizeof($map) === 4 ? $map[2] : "=";
+                return array($modifier, $this->_getQryMapValueType($value), $value, "`$column` $op ?");
         }
     }
 }

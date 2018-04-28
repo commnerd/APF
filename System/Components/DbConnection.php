@@ -292,7 +292,7 @@ class DbConnection extends AppComponent
     public function deleteRecord($pSQL,$pTheBindVal) {
 		$stmt = $this->connection->prepare($pSQL);
 		if (!is_null($pTheBindVal)) {
-			call_user_func_array(array($stmt, 'bind_param'), $pTheBindVal);
+			call_user_func_array(array($stmt, 'bind_param'), $this->_refValues($pTheBindVal));
 			//$stmt->bind_param("i", $pTheBindVal);
 		}
 	    $stmt->execute();

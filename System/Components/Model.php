@@ -127,6 +127,16 @@ abstract class Model extends AppComponent
 	}
 
 	/**
+	 * Forward function call if not explicitely defined
+	 * @param  string $method The method to forward
+	 * @param  array  $args   The args to pass
+	 * @return mixed          The returned value
+	 */
+	public function __call($method, $args) {
+		return call_user_func_array(array($this, "___".$method), $args);
+	}
+
+	/**
 	 * Constructor for the class
 	 */
 	public function __construct()
@@ -162,6 +172,9 @@ abstract class Model extends AppComponent
 			if($relationship instanceof Relationship) {
 				return $relationship->fetch();
 			}
+		}
+		if($name === "attributes" && !isset($this->_attributes['attributes'])) {
+			return $this->_attributes;
 		}
 		return $this->_attributes[$name];
 	}
@@ -246,6 +259,9 @@ abstract class Model extends AppComponent
 	 */
 	public function getPrimaryKey()
 	{
+		if(!isset($this->_attributes[$this->primaryKey])) {
+			return null;
+		}
 		return $this->_attributes[$this->primaryKey];
 	}
 
@@ -298,18 +314,15 @@ abstract class Model extends AppComponent
 	 * @param boolean $cascade  If true, delete children and all subchildren
 	 * @return void
 	 */
-	public function ___delete($cascade = false)
+	public function ___delete($id)
 	{
 		if(empty($this->primaryKey)) {
 			throw new \ErrorException(self::ERROR_EXCEPTION_DELETE);
 		}
-		foreach($this->attributes as $attribute => $value) {
-			if($value instanceof Model) {
-				$value->delete($cascade);
-			}
-		}
-		$query = $this->_queryBuilder->delete($this->toArray());
-		$this->_db->deleteRecord($query);
+
+		$column = $this->getPrimaryKeyColumn();
+		$query = $this->_queryBuilder->where($column, $id)->delete();
+		$this->_db->deleteRecord($query->query, $query->bindings);
 	}
 
 	/**
@@ -384,7 +397,6 @@ abstract class Model extends AppComponent
 	private function _calledFromSystem()
 	{
 		$trace = debug_backtrace();
-
 		return preg_match('/^System/', $trace[2]['class']);
 	}
 }

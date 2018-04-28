@@ -26,8 +26,9 @@ class SectionController extends BaseController
     }
 
     public function destroy(string $ID)
-    {
+    {  
         Section::delete($ID);
+
         return $this->redirect('back');
     }
 }
