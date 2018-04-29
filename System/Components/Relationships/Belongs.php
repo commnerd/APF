@@ -11,29 +11,18 @@ use ReflectionClass;
 abstract class Belongs extends Relationship
 {
     /**
-     * The string representing the context
-     *
-     * @var string
-     */
-    const CONTEXT_KEY = "local";
-
-    /**
      * Get the key for the corresponding relationship
-     * @param  string $context self::KEY_FOREIGN or self::KEY_LOCAL
+     *
      * @return string          The corresponding relationship key
      */
-    protected function getKey($context)
+    protected function guessKey()
     {
-        if(isset($this->column)) {
-            return $this->column;
-        }
-
         $column = "";
         $class = $this->class;
         $obj = new $class();
-        $reflection = new ReflectionClass($this->sourceModel);
+        $reflection = new ReflectionClass($obj);
         $column = TextTransforms::camelCaseToSnakeCase($reflection->getShortName());
-        $column .= "_".$obj->getPrimaryKey();
+        $column .= "_".$this->sourceModel->getPrimaryKey();
 
         return strtoupper($column);
     }

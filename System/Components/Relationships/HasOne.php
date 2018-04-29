@@ -11,7 +11,7 @@ class HasOne extends Has
      */
     public function fetch()
     {
-        $foreignKey = $this->getKey(Relationship::KEY_FOREIGN);
+        $foreignKey = $this->getKey();
 
         return $this->class::where($foreignKey, $this->sourceModel->getKey())->get();
     }

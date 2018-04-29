@@ -60,6 +60,12 @@ abstract class Model extends AppComponent
 	private $_attributes;
 
 	/**
+	 * "With" registry
+	 * @var [type]
+	 */
+	private $_with;
+
+	/**
 	 * Values as read from database
 	 */
 	private $_originalValues;
@@ -142,10 +148,11 @@ abstract class Model extends AppComponent
 		$this->_db = $this->app->database;
 
 		$this->_attributes = array();
+		$this->_with = array();
 
 		if(empty($this->table) || !is_string($this->table)) {
 			$className = $this->_getClassName();
-			$this->table = TextTransforms::camelCaseToSnakeCase($className);
+			$this->table = $this->getTable();
 		}
 
 		$this->_instantiateArrayIfNecessary($this->casts);
@@ -240,7 +247,9 @@ abstract class Model extends AppComponent
 			return $this->_table;
 		}
 		$reflect = new ReflectionClass($this);
-		return TextTransforms::camelCaseToSnakeCase($reflect->getShortName());
+		$name = $reflect->getShortName();
+		$name = TextTransforms::camelCaseToSnakeCase($name);
+		return TextTransforms::singleToPlural($name);
 	}
 
 	/**
@@ -274,10 +283,22 @@ abstract class Model extends AppComponent
 	 * 							  ensure only this object can fill liberally
 	 * @return Model              Whatever was just filled
 	 */
-	public function fill($attributes) {
+	public function fill($attributes, $results = null) {
 		if($this->_calledFromSystem()) {
-			$this->_attributes = $attributes;
-			$this->_originalValues = $attributes;
+			foreach(array_keys($attributes) as $attribute) {
+				$table = $this->table;
+
+				if(preg_match("/^".$table."_(.*)$/", $attribute, $matches)) {
+					$this->_attributes[$matches[1]] = $attributes[$attribute];
+					$this->_originalValues[$matches[1]] = $attributes[$attribute];
+				}
+
+			}
+			if(!empty($this->_with)) {
+				foreach($this->_with as $key => $relation) {
+					$this->_attributes[$key] = $this->fillChildren($results, $relation);
+				}
+			}
 		}
 		else {
 			foreach($this->fillable as $key) {
@@ -285,6 +306,29 @@ abstract class Model extends AppComponent
 			}
 		}
 		return $this;
+	}
+
+	public function fillChildren(array $results, Relationship $relation = null)
+	{
+		if(!isset($relation)) {
+			foreach($this->_with as $relation) {
+				$this->fillChildren($results, $relation);
+			}
+			return;
+		}
+		$objs = array();
+		$class = $relation->getClass();
+
+		foreach($results as $row) {
+			$obj = new $class();
+			if(!empty($relation->getWith())) {
+				$obj->with($relation->getWith());
+			}
+
+			$objs[$row[$obj->getTable()."_".$obj->getPrimaryKey()]] = $obj->fill($row, $results);
+		}
+
+		return $objs;
 	}
 
 	/**
@@ -309,7 +353,7 @@ abstract class Model extends AppComponent
 		return $this->_attributes[$this->primaryKey];
 	}
 
-
+/*
 	private function ___buildCascadingArraysFromModelArray(array $models, $childModels = array())
 	{
 		$results = array();
@@ -340,28 +384,40 @@ abstract class Model extends AppComponent
 		}
 		return $arrayedModel;
 	}
+	*/
 
-	private function ___with($children)
+	private function ___with($children, QueryBuilder $qb = null)
 	{
-		$children = explode('.', $children);
-		$obj = $this;
-		foreach($children as $child) {
-			$this->_queryBuilder->join($this->{$child}());
+		if(empty($qb)) {
+			$qb = $this->_queryBuilder;
 		}
+		if(is_array($children)) {
+			foreach($children as $childrenStrings) {
+				$this->with($childrenStrings, $qb);
+			}
+		}
+		$children = explode('.', $children);
+		$child = array_pop($children);
+		$children = implode('.', $children);
+		$relation = $this->{$child}();
+		$qb->join($relation);
+		if(!empty($children)) {
+			$relation->setWith($children);
+		}
+		$this->_with[$child] = $relation;
 		return $this;
 	}
+
 
 	private function ___all()
 	{
 		$query = call_user_func_array(array($this->_queryBuilder, 'get'), array());
-		exit(print_r($query, true));
+
 		$results = $this->app->database->getCustomQueries($query);
 		$objs = array();
 		if(!empty($results)) {
-			$class = get_called_class();
 			foreach($results as $row) {
-				$obj = new $class();
-				$objs[] = $obj->fill($row);
+				$objs[$row[$this->getTable()."_".$this->getPrimaryKey()]] = $this->fill($row, $results);
 			}
 		}
 		return $objs;
@@ -391,6 +447,18 @@ abstract class Model extends AppComponent
 	 */
 	public function toArray()
 	{
+		foreach($this->_attributes as $key => $value) {
+			if(is_array($value)) {
+				foreach($value as $index => $item) {
+					if($item instanceof Model) {
+						$this->_attributes[$key][$index] = $item->toArray();
+					}
+				}
+			}
+			if($value instanceof Model) {
+				$this->_attributes[$key] = $value->toArray();
+			}
+		}
 		return $this->_attributes;
 	}
 

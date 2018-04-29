@@ -31,6 +31,8 @@ class QueryBuilder extends AppComponent
      */
     public function __construct($table, $primaryKey)
     {
+        parent::__construct();
+
         $this->_table = $table;
 
         $this->_primaryKey = $primaryKey;
@@ -162,25 +164,51 @@ class QueryBuilder extends AppComponent
         $keys = array();
         $values = array();
         if(empty($this->_columns)) {
-            $qry = preg_replace('/COLS/', '*', $qry);
+            $dbQry = new DBQuery("SHOW COLUMNS FROM $this->_table", array());
+            $columns = $this->app->database->getCustomQueries($dbQry);
+            $selectors = array();
+            foreach($columns as $column) {
+                $subQry = "`$this->_table`.`".$column['Field']."` AS ";
+                $subQry .= "`".$this->_table."_".$column['Field']."`";
+                $selectors[] = $subQry;
+            }
+
+            foreach($this->_joins as $relationship) {
+                $class = $relationship->getClass();
+                $obj = new $class();
+                $dbQry = new DBQuery("SHOW COLUMNS FROM ".$obj->getTable(), array());
+                $columns = $this->app->database->getCustomQueries($dbQry);
+                foreach($columns as $column) {
+                    $subQry = "`".$obj->getTable()."`.`".$column['Field']."` AS ";
+                    $subQry .= "`".$obj->getTable()."_".$column['Field']."`";
+                    $selectors[] = $subQry;
+                }
+            }
+            $qry = preg_replace('/COLS/', implode(", ", $selectors), $qry);
         }
         else {
             $qry = preg_replace(
                 '/COLS/',
-                '`'.implode('`,`', $this->_columns).'`',
+                '`'.implode('`,`', "`$this->_table`.`$this->_columns`").'`',
                 $qry
             );
         }
 
         if(!empty($this->_joins)) {
             foreach($this->_joins as $relationship) {
+                $class = $relationship->getClass();
+                $src = $relationship->getSourceModel();
+                $obj = new $class();
                 if($relationship instanceof Belongs) {
-                    $qry .= " RIGHT JOIN `".$relationship->getTable()."` ON `";
+                    $qry .= " RIGHT JOIN ";
                 }
                 else {
-                    $qry .= " LEFT JOIN `".$relationship->getTable()."` ON `";
+                    $qry .= " LEFT JOIN ";
+                    $qry .= "`".$obj->getTable()."` ON ";
+                    $qry .= "`".$src->getTable()."`.`".$src->getPrimaryKey()."` = ";
+                    $qry .= "`".$obj->getTable()."`.`".$relationship->getKey()."`";
                 }
-                $qry .= "`".$relationship->getTable()."` ON `".$relationship->getPrimaryKey()."`";
+
             }
         }
 

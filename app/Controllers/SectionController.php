@@ -10,7 +10,7 @@ class SectionController extends BaseController
     public function index(Request $request)
     {
         return $this->view('welcome.html', array(
-            'sections' => Section::all()
+            'sections' => Section::with('ENTRIES')->all()
         ));
     }
 
@@ -26,7 +26,7 @@ class SectionController extends BaseController
     }
 
     public function destroy(string $ID)
-    {  
+    {
         Section::delete($ID);
 
         return $this->redirect('back');

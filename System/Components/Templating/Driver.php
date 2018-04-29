@@ -31,12 +31,12 @@ class Driver extends AppComponent
 	{
 		foreach($params as $paramIndex => $param) {
 			if($param instanceof Model) {
-				$params[$paramIndex] = get_class($param)::buildCascadingArraysFromModel($param);
+				$params[$paramIndex] = $param->toArray();
 			}
 			if(is_array($param)) {
 				foreach($param as $valueIndex => $value) {
 					if($value instanceof Model) {
-						$params[$paramIndex][$valueIndex] = get_class($value)::buildCascadingArraysFromModel($value);
+						$params[$paramIndex][$valueIndex] = $value->toArray();
 					}
 				}
 			}

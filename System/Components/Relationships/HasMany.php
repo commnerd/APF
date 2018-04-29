@@ -11,7 +11,7 @@ class HasMany extends Has
      */
     public function fetch()
     {
-        $foreignKey = $this->getKey(self::CONTEXT_KEY);
+        $foreignKey = $this->getKey();
         $this->query = $this->class::where($foreignKey, $this->sourceModel->getKey())->get();
         return $this;
     }

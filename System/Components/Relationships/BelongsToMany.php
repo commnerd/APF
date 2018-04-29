@@ -11,7 +11,7 @@ class BelongsToMany extends Belongs
      */
     public function fetch()
     {
-        $key = $this->getKey(Relationship::KEY_LOCAL);
+        $key = $this->getKey();
 
         return $this->class::where($key, $this->sourceModel->getKey())->get();
     }

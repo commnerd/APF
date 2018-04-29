@@ -96,6 +96,10 @@ class TextTransforms
 			if(substr($str, -strlen($a)) === $a) {
 				return substr($str, 0, -strlen($a)).$b;
 			}
+			if(empty($a) && $rule === self::RULES[sizeof(self::RULES) - 1]) {
+				return $str.$b;
+			}
 		}
+		return $str;
 	}
 }

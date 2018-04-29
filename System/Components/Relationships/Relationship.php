@@ -51,6 +51,11 @@ abstract class Relationship implements RelationshipInterface
      */
     protected $column;
 
+	/**
+	 * Carryover with ars
+	 */
+	private $_with;
+
 
     /**
      * Build the relationship object
@@ -70,8 +75,23 @@ abstract class Relationship implements RelationshipInterface
         $this->table = $table;
     }
 
-	public function getTable() {
-		return $this->table;
+	public function getClass()
+	{
+		return $this->class;
+	}
+
+	public function getSourceModel()
+	{
+		return $this->sourceModel;
+	}
+
+	public function getKey()
+	{
+		if(isset($this->column)) {
+            return $this->column;
+        }
+
+		return $this->guessKey();
 	}
 
     public function getQuery()
@@ -91,4 +111,12 @@ abstract class Relationship implements RelationshipInterface
         }
         return sizeof($result) === 1 ? array_pop($result) : $result;
     }
+
+	public function setWith($str = null) {
+		$this->_with = $str;
+	}
+
+	public function getWith() {
+		return $this->_with;
+	}
 }
