@@ -2,6 +2,10 @@
 
 namespace System\Components;
 
+use System\Components\Relationships\Relationship;
+use System\Components\Relationships\Belongs;
+use System\Components\Relationships\Has;
+
 class QueryBuilder extends AppComponent
 {
 
@@ -59,27 +63,19 @@ class QueryBuilder extends AppComponent
 
     public function get()
     {
-        $obj = new $this->_class();
-
-        list($query, $bindings) = $this->_buildSelectComponents();
-
-        $ary = $this->database->getCustomQuery($query, $bindings);
-
-        $obj->fill($ary);
-
-        return $obj;
+        return $this->_buildSelectComponents();
     }
 
     public function find($id)
     {
-        $this->_where[$this->_obj->getPrimaryKeyColumn()] = $id;
+        $this->_where[$this->_obj->getKey()] = $id;
 
         return $this->_buildSelectComponents();
     }
 
-    public function with($componentTrail)
+    public function join(Relationship $relationship)
     {
-        $this->_joins = explode('.', $componentTrail);
+        $this->_joins[] = $relationship;
 
         return $this;
     }
@@ -174,6 +170,18 @@ class QueryBuilder extends AppComponent
                 '`'.implode('`,`', $this->_columns).'`',
                 $qry
             );
+        }
+
+        if(!empty($this->_joins)) {
+            foreach($this->_joins as $relationship) {
+                if($relationship instanceof Belongs) {
+                    $qry .= " RIGHT JOIN `".$relationship->getTable()."` ON `";
+                }
+                else {
+                    $qry .= " LEFT JOIN `".$relationship->getTable()."` ON `";
+                }
+                $qry .= "`".$relationship->getTable()."` ON `".$relationship->getPrimaryKey()."`";
+            }
         }
 
         if(!empty($this->_where)) {

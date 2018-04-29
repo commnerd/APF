@@ -2,7 +2,7 @@
 
 namespace System\Components\Relationships;
 
-class HasMany extends Relationship
+class HasMany extends Has
 {
     /**
      * Fetch the related object
@@ -11,8 +11,8 @@ class HasMany extends Relationship
      */
     public function fetch()
     {
-        $foreignKey = $this->getKey(Relationship::KEY_FOREIGN);
-
-        return $this->class::where($foreignKey, $this->sourceModel->getPrimaryKey())->get();
+        $foreignKey = $this->getKey(self::CONTEXT_KEY);
+        $this->query = $this->class::where($foreignKey, $this->sourceModel->getKey())->get();
+        return $this;
     }
 }

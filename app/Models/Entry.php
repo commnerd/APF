@@ -4,14 +4,9 @@ namespace App\Models;
 
 use System\Components\Relationships\HasMany;
 
-class Section extends Model
+class Entry extends Model
 {
     protected $fillable = array(
-        'LABEL',
+        'LABEL', 'CONTENT'
     );
-
-    public function SECTIONS()
-    {
-    	return $this->hasMany('\App\Models\Entry');
-    }
 }

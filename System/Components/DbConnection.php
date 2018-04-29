@@ -75,7 +75,7 @@ class DbConnection extends AppComponent
  		$pTheBindVal = $query->bindings;
 		$stmt = $this->connection->prepare($pSQL);
 		if (!empty($pTheBindVal)) {
-			call_user_func_array(array($stmt, 'bind_param'), $pTheBindVal);
+			call_user_func_array(array($stmt, 'bind_param'), $this->_refValues($pTheBindVal));
 			//$stmt->bind_param("i", $pTheBindVal);
 		}
 	    $stmt->execute();

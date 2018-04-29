@@ -9,8 +9,9 @@ class HelloWorldController extends BaseController
 {
     public function index(Request $request)
     {
+        $sections = Section::with('ENTRIES')->all();
         return $this->view('welcome.html', array(
-            'sections' => Section::all()
+            'sections' => $sections
         ));
     }
 

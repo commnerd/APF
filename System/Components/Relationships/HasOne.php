@@ -2,7 +2,7 @@
 
 namespace System\Components\Relationships;
 
-class HasOne extends Relationship
+class HasOne extends Has
 {
 	/**
      * Fetch the related object
@@ -13,6 +13,6 @@ class HasOne extends Relationship
     {
         $foreignKey = $this->getKey(Relationship::KEY_FOREIGN);
 
-        return $this->class::where($foreignKey, $this->sourceModel->getPrimaryKey())->get();
+        return $this->class::where($foreignKey, $this->sourceModel->getKey())->get();
     }
 }

@@ -2,7 +2,7 @@
 
 namespace System\Components\Relationships;
 
-class BelongsToMany extends Relationship
+class BelongsToMany extends Belongs
 {
 	/**
      * Fetch the related object
@@ -13,6 +13,6 @@ class BelongsToMany extends Relationship
     {
         $key = $this->getKey(Relationship::KEY_LOCAL);
 
-        return $this->class::where($key, $this->sourceModel->getPrimaryKey())->get();
+        return $this->class::where($key, $this->sourceModel->getKey())->get();
     }
 }

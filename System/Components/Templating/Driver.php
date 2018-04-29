@@ -3,6 +3,7 @@
 namespace System\Components\Templating;
 
 use System\Components\AppComponent;
+use System\Components\Model;
 use Twig_Loader_Filesystem;
 use Twig_SimpleFunction;
 use Twig_Environment;
@@ -26,10 +27,19 @@ class Driver extends AppComponent
 		}
 	}
 
-	public function render(string $template, array $params)
+	public function render(string $template, array $params = array())
 	{
-		if($params == null) {
-			$params = array();
+		foreach($params as $paramIndex => $param) {
+			if($param instanceof Model) {
+				$params[$paramIndex] = get_class($param)::buildCascadingArraysFromModel($param);
+			}
+			if(is_array($param)) {
+				foreach($param as $valueIndex => $value) {
+					if($value instanceof Model) {
+						$params[$paramIndex][$valueIndex] = get_class($value)::buildCascadingArraysFromModel($value);
+					}
+				}
+			}
 		}
 		return $this->_system->render($template, $params);
 	}

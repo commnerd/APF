@@ -2,6 +2,10 @@
 
 namespace System\Components;
 
+use System\Components\Relationships\BelongsToMany;
+use System\Components\Relationships\BelongsTo;
+use System\Components\Relationships\HasMany;
+use System\Components\Relationships\HasOne;
 use System\Services\TextTransforms;
 use System\Components\DbConnection;
 use System\Components\QueryBuilder;
@@ -26,6 +30,13 @@ abstract class Model extends AppComponent
 	 * @var string
 	 */
 	const ERROR_EXCEPTION_UPDATE = "No context for update.";
+
+	/**
+	 * Fetch error when element not found
+	 *
+	 * @var string
+	 */
+	const ERROR_EXCEPTION_GET    = "Variable not found.";
 
 	/**
 	 * Build queries to pass to the database handler
@@ -81,30 +92,6 @@ abstract class Model extends AppComponent
 	 */
 	protected $fillable;
 
-	public static function all()
-	{
-		GLOBAL $app;
-
-		$return = array();
-
-		$class = get_called_class();
-
-		$obj = new $class();
-
-		$queryBuilder = new QueryBuilder($obj->getTable(), $obj->getPrimaryKeyColumn());
-
-		$query = $queryBuilder->select();
-
-		$results = $app->database->getCustomQueries($query);
-
-		foreach($results as $row) {
-			$obj = new $class();
-			$return[] = $obj->fill($row)->toArray();
-		}
-
-		return $return;
-	}
-
 	/**
 	 * Static method that leverages QueryBuilder
 	 * @param  string $method      The name of the QueryBuilder method to call
@@ -116,14 +103,11 @@ abstract class Model extends AppComponent
 		$class = get_called_class();
 
 		$obj = new $class();
+		if($obj instanceof Model) {
+			return call_user_func_array(array($obj, $method), $args);
+		}
 
-		$queryBuilder = new QueryBuilder($obj->getTable(), $obj->getPrimaryKeyColumn());
-
-		$query = $queryBuilder->{$method}();
-
-		$result = call_user_func_array(array($obj, $method), $args);
-
-		return $result;
+		return $obj;
 	}
 
 	/**
@@ -133,7 +117,18 @@ abstract class Model extends AppComponent
 	 * @return mixed          The returned value
 	 */
 	public function __call($method, $args) {
-		return call_user_func_array(array($this, "___".$method), $args);
+
+		$methods = get_class_methods($this);
+		if(in_array("___".$method, $methods)) {
+			return call_user_func_array(array($this, "___".$method), $args);
+		}
+
+		$methods = get_class_methods($this->_queryBuilder);
+		if(in_array($method, $methods)) {
+			call_user_func_array(array($this->_queryBuilder, $method), $args);
+			return $this;
+		}
+
 	}
 
 	/**
@@ -143,7 +138,7 @@ abstract class Model extends AppComponent
 	{
 		parent::__construct();
 
-		$this->_queryBuilder = new QueryBuilder($this->getTable(), $this->getPrimaryKeyColumn());
+		$this->_queryBuilder = new QueryBuilder($this->getTable(), $this->getPrimaryKey());
 		$this->_db = $this->app->database;
 
 		$this->_attributes = array();
@@ -167,16 +162,22 @@ abstract class Model extends AppComponent
 	public function __get($name)
 	{
 		$methods = get_class_methods(get_class($this));
+		if(isset($this->_attributes[$name])) {
+			return $this->_attributes[$name];
+		}
 		if(in_array($name, $methods)) {
 			$relationship = $this->{$name}();
 			if($relationship instanceof Relationship) {
-				return $relationship->fetch();
+				$query = $relationship->getQuery();
+				$results = $this->app->database->getCustomQueries($query);
+				return $relationship->buildResultSet($results);
 			}
 		}
 		if($name === "attributes" && !isset($this->_attributes['attributes'])) {
 			return $this->_attributes;
 		}
-		return $this->_attributes[$name];
+
+		throw new ErrorException(self::ERROR_EXCEPTION_GET);
 	}
 
 	/**
@@ -247,7 +248,7 @@ abstract class Model extends AppComponent
 	 *
 	 * @return string The column representing the primary key
 	 */
-	public function getPrimaryKeyColumn()
+	public function getPrimaryKey()
 	{
 		return $this->primaryKey;
 	}
@@ -257,7 +258,7 @@ abstract class Model extends AppComponent
 	 *
 	 * @return integer The ID for the given model
 	 */
-	public function getPrimaryKey()
+	public function getKey()
 	{
 		if(!isset($this->_attributes[$this->primaryKey])) {
 			return null;
@@ -308,19 +309,77 @@ abstract class Model extends AppComponent
 		return $this->_attributes[$this->primaryKey];
 	}
 
+
+	private function ___buildCascadingArraysFromModelArray(array $models, $childModels = array())
+	{
+		$results = array();
+		foreach($models as $model) {
+			$results[] = $this->___buildCascadingArraysFromModel($model, $childModels);
+		}
+		return $results;
+	}
+
+	private function ___buildCascadingArraysFromModel(Model $model, $childModels = array())
+	{
+		// Return early with model if we're at "leaf" model in tree
+		if(empty($childModels)) {
+			return $model->toArray();
+		}
+
+		$arrayedModel = $model->toArray();
+		if(is_array($childModels)) {
+			foreach($childModels as $childModel) {
+				$this->___buildCascadingArraysFromModel($model, $childModel);
+			}
+		}
+		if(!empty($childModels) && is_string($childModels)) {
+			$childModels = explode('.', $childModels);
+			$childModel = array_pop($childModels);
+			$childModels = implode('.', $childModels);
+			$arrayedModel[$childModel] = $this->___buildCascadingArraysFromModelArray($model->{$childModel}, $childModels);
+		}
+		return $arrayedModel;
+	}
+
+	private function ___with($children)
+	{
+		$children = explode('.', $children);
+		$obj = $this;
+		foreach($children as $child) {
+			$this->_queryBuilder->join($this->{$child}());
+		}
+		return $this;
+	}
+
+	private function ___all()
+	{
+		$query = call_user_func_array(array($this->_queryBuilder, 'get'), array());
+		exit(print_r($query, true));
+		$results = $this->app->database->getCustomQueries($query);
+		$objs = array();
+		if(!empty($results)) {
+			$class = get_called_class();
+			foreach($results as $row) {
+				$obj = new $class();
+				$objs[] = $obj->fill($row);
+			}
+		}
+		return $objs;
+	}
+
 	/**
 	 * Delete a given record
 	 *
 	 * @param boolean $cascade  If true, delete children and all subchildren
 	 * @return void
 	 */
-	public function ___delete($id)
+	private function ___delete($id)
 	{
 		if(empty($this->primaryKey)) {
 			throw new \ErrorException(self::ERROR_EXCEPTION_DELETE);
 		}
 
-		$column = $this->getPrimaryKeyColumn();
+		$column = $this->getPrimaryKey();
 		$query = $this->_queryBuilder->where($column, $id)->delete();
 		$this->_db->deleteRecord($query->query, $query->bindings);
 	}

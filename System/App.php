@@ -237,7 +237,6 @@ class App implements AppInterface
 		$params = $this->_getParamValues($paramTypes);
 		$obj = new $controller();
 		$this->{"\System\Components\Response"} = call_user_func_array( array($obj, $method), $params );
-		// exit("<pre>".print_r($this->{"\System\Components\Response"}, true)."</pre>");
 	}
 
 	/**
