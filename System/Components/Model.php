@@ -297,6 +297,10 @@ abstract class Model extends AppComponent
 			if(!empty($this->_with)) {
 				foreach($this->_with as $key => $relation) {
 					$this->_attributes[$key] = $this->fillChildren($results, $relation);
+					array_pop($this->_with);
+					if(empty($this->_attributes[$key])) {
+						unset($this->_attributes[$key]);
+					}
 				}
 			}
 		}
@@ -324,10 +328,10 @@ abstract class Model extends AppComponent
 			if(!empty($relation->getWith())) {
 				$obj->with($relation->getWith());
 			}
-
-			$objs[$row[$obj->getTable()."_".$obj->getPrimaryKey()]] = $obj->fill($row, $results);
+			if(!empty($row[$obj->getTable()."_".$obj->getPrimaryKey()])) {
+				$objs[$row[$obj->getTable()."_".$obj->getPrimaryKey()]] = $obj->fill($row, $results);
+			}
 		}
-
 		return $objs;
 	}
 
@@ -412,7 +416,6 @@ abstract class Model extends AppComponent
 	private function ___all()
 	{
 		$query = call_user_func_array(array($this->_queryBuilder, 'get'), array());
-
 		$results = $this->app->database->getCustomQueries($query);
 		$objs = array();
 		if(!empty($results)) {
