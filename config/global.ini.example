@@ -9,5 +9,3 @@ path.routes = "routes"
 path.config = "config"
 
 appname = "consapp2018"
-prevappyear = "2017/2018"
-currappyear = "2018/2019"

@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>{{ appname }}</title>
+        {% if head is defined %}
+            {{ head }}
+        {% endif %}
+    </head>
+    <body>
+        {% if header is defined %}
+            {{ header }}
+        {%  endif %}
+        {% if content is defined %}
+            {{ content }}
+        {%  endif %}
+        {% if footer is defined %}
+            {{ footer }}
+        {%  endif %}
+    </body>
+</html>
