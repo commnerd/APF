@@ -112,6 +112,7 @@ class App implements AppInterface
 	public function sendResponse()
 	{
 		$response = $this->{'\System\Components\Response'};
+		exit(print_r($response, true));
 		$type = $response->type;
 		$params = $response->params;
 		switch($type) {

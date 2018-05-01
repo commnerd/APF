@@ -13,7 +13,7 @@ class Controller extends AppComponent
 		$this->_router = $this->app->router;
 	}
 
-	public function view($template, $params = null)
+	public function view($template, $params = array())
 	{
 		$params[Response::TYPE_TEMPLATE] = $template;
 
