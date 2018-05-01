@@ -113,10 +113,9 @@ class App implements AppInterface
 	{
 		$response = $this->{'\System\Components\Response'};
 		$type = $response->type;
-		$params = $response->params;
+		$params = array_merge($response->params, $this->config->get());
 		switch($type) {
 			case $response::TYPE_REDIRECT:
-				echo $params['route'];
 				header('Location: '.$params['route']);
 				http_response_code($response->code);
 				break;
@@ -182,7 +181,12 @@ class App implements AppInterface
 	private function _loadDb()
 	{
 		$this->_componentMap['\System\Components\DbConnection'] =
-			new DbConnection('test', 'test', 'localhost', 'test', '3306');
+			new DbConnection(
+				$this->config->get('database.username'),
+				$this->config->get('database.password'),
+				$this->config->get('database.hostname'),
+				$this->config->get('database.dbname'),
+				$this->config->get('database.port'));
 		$this->_componentAliasMap['database'] = '\System\Components\DbConnection';
 	}
 

@@ -24,8 +24,11 @@ class Config extends AppComponent
      * @param  string $name The config value label
      * @return string       The config value
      */
-    public function get($name)
+    public function get($name = null)
     {
+        if(empty($name)) {
+            return $this->_configs;
+        }
         return $this->_configs[$name];
     }
 }

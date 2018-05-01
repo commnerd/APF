@@ -1,20 +1,19 @@
-<form action="/" method="POST">
-    <input name="LABEL" type="text" />
-    <input type="submit">
-</form>
+{% extends 'layouts/main.html' %}
 
-<ul>
-    {% for section in sections %}
-    <li>
-        {{ section.LABEL }} <a href="{{ route('sections.destroy', { 'ID': section.ID }) }}?_method=DELETE">Delete</a>
-        {% if section.ENTRIES|length > 0 %}
-        <ul>
-            {% for entry in section.ENTRIES %}
-            <li>{{ entry.LABEL }}</li>
-            {% endfor %}
-        </ul>
-        {% endif %}
+{% block header %}
+    <header>
+        <h1>Welcome to {{ appname }}</h1>
+    </header>
+{% endblock %}
 
-    </li>
-    {% endfor %}
-</ul>
+{% block content %}
+    <section>
+        <h2>Content goes here.</h2>
+    </section>
+{% endblock %}
+
+{% block footer %}
+    <footer>
+        <h3>Thanks for visiting</h3>
+    </footer>
+{% endblock %}

@@ -28,7 +28,7 @@ class Controller extends AppComponent
 	 * @param  array                        $params   The array of parameters to pass to the template
 	 * @return System\Components\Response             The response to be returned to the client
 	 */
-	public function view($template, $params = null)
+	public function view($template, $params = array())
 	{
 		$params[Response::TYPE_TEMPLATE] = $template;
 
