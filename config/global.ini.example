@@ -8,4 +8,7 @@ path.src.middlewares = "app/Middlewares"
 path.routes = "routes"
 path.config = "config"
 
-appname = "consapp2018"
+appname = "Welcome"
+
+css = ""
+js  = ""
