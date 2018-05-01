@@ -28,7 +28,6 @@ class DbConnection extends AppComponent
 	    $row = $this->bind_result_array($stmt);
 	    if(!$stmt->error)
 	    {
-
 	        while($stmt->fetch())
 	            $dataArray = $row;
 

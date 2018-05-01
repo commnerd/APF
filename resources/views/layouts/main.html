@@ -1,20 +1,19 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>{{ appname }}</title>
-        {% if head is defined %}
-            {{ head }}
-        {% endif %}
+        <title>
+            {% block title %}
+            {% endblock %}
+        </title>
+        {% block head %}
+        {% endblock %}
     </head>
     <body>
-        {% if header is defined %}
-            {{ header }}
-        {%  endif %}
-        {% if content is defined %}
-            {{ content }}
-        {%  endif %}
-        {% if footer is defined %}
-            {{ footer }}
-        {%  endif %}
+        {% block header %}
+        {% endblock %}
+        {% block content %}
+        {% endblock %}
+        {% block footer %}
+        {% endblock %}
     </body>
 </html>

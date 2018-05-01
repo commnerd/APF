@@ -21,7 +21,6 @@ class TemplateSystem extends AppComponent
 
 	public function render($template, $params)
 	{
-		
 		return $this->_driver->render($template, $params);
 	}
 }

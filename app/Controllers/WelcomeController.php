@@ -6,6 +6,6 @@ class WelcomeController extends BaseController
 {
     public function index()
     {
-        $this->view('welcome.html');
+        return $this->view('welcome.html');
     }
 }
