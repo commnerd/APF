@@ -22,21 +22,42 @@ abstract class Model extends AppComponent
 	 *
 	 * @var string
 	 */
-	const ERROR_EXCEPTION_DELETE = "No context for deletion.";
+	const ERROR_EXCEPTION_DELETE    = "No context for deletion.";
 
 	/**
 	 * Deletion error exception message
 	 *
 	 * @var string
 	 */
-	const ERROR_EXCEPTION_UPDATE = "No context for update.";
+	const ERROR_EXCEPTION_UPDATE    = "No context for update.";
 
 	/**
-	 * Fetch error when element not found
+	 * Error for when element not found
 	 *
 	 * @var string
 	 */
-	const ERROR_EXCEPTION_GET    = "Variable not found.";
+	const ERROR_EXCEPTION_GET       = "Variable not found.";
+
+	/**
+	 * Error passed for unintended arguments being passed
+	 *
+	 * @var string
+	 */
+	const ERROR_PRIVATE_ARGUMENTS   = "Passed arguments not intended for framework user.";
+
+	/**
+	 * Method only intended for system
+	 *
+	 * @var string
+	 */
+	const ERROR_SYSTEM_METHOD       = "This method is intended for the framework only.";
+
+	/**
+	 * Error passed for unintended arguments being passed
+	 *
+	 * @var string
+	 */
+	const ERROR_IMPROPER_METHOD_USE = "Improper method use.";
 
 	/**
 	 * Build queries to pass to the database handler
@@ -100,6 +121,7 @@ abstract class Model extends AppComponent
 
 	/**
 	 * Static method that leverages QueryBuilder
+	 * 
 	 * @param  string $method      The name of the QueryBuilder method to call
 	 * @param  array  $args        Arguments to pass to the method
 	 * @return array|QueryBuilder  Result set or QueryBuilder
@@ -118,6 +140,7 @@ abstract class Model extends AppComponent
 
 	/**
 	 * Forward function call if not explicitely defined
+	 * 
 	 * @param  string $method The method to forward
 	 * @param  array  $args   The args to pass
 	 * @return mixed          The returned value
@@ -200,6 +223,7 @@ abstract class Model extends AppComponent
 
 	/**
 	 * Grab the related model
+	 * 
 	 * @param  string  $class      The related class
 	 * @param  string  $foreignKey The foreign key to use in lookup
 	 * @param  string  $table      The table to look in if needing override
@@ -213,10 +237,11 @@ abstract class Model extends AppComponent
 
 	/**
 	 * Grab the related models
+	 * 
 	 * @param  string  $class      The related class
 	 * @param  string  $foreignKey The foreign key to use in lookup
 	 * @param  string  $table      The table to look in if needing override
-	 * @return Model			   The associated model
+	 * @return array			   The associated model
 	 */
 	public function hasMany($class, $foreignKey = null, $table = null)
 	{
@@ -224,12 +249,28 @@ abstract class Model extends AppComponent
 		return $relationship->fetch();
 	}
 
+	/**
+	 * Grab the related model
+	 * 
+	 * @param  string  $class      The related class
+	 * @param  string  $foreignKey The foreign key to use in lookup
+	 * @param  string  $table      The table to look in if needing override
+	 * @return Model			   The associated model
+	 */
 	public function belongsTo($class, $foreignKey = null, $table = null)
 	{
 		$relationship = new BelongsTo($this, $class, $foreignKey, $table);
 		return $relationship->fetch();
 	}
 
+	/**
+	 * Grab the related models
+	 * 
+	 * @param  string  $class      The related class
+	 * @param  string  $foreignKey The foreign key to use in lookup
+	 * @param  string  $table      The table to look in if needing override
+	 * @return array			   The associated model
+	 */
 	public function belongsToMany($class, $foreignKey = null, $table = null)
 	{
 		$relationship = new BelongsToMany($this, $class, $foreignKey, $table);
@@ -279,11 +320,13 @@ abstract class Model extends AppComponent
 	 * Fill model from array
 	 *
 	 * @param  array  $attributes Array of items to populate model with
-	 * @param  Model  $obj        An instance of the object making the call to
-	 * 							  ensure only this object can fill liberally
+	 * @param  array  $results 	  Results from a Database Query (not for use by framework user)
 	 * @return Model              Whatever was just filled
 	 */
 	public function fill($attributes, $results = null) {
+		if(isset($results) && !$this->_calledFromSystem()) {
+			throw new ErrorException(self::ERROR_PRIVATE_ARGUMENTS);
+		}
 		if($this->_calledFromSystem()) {
 			foreach(array_keys($attributes) as $attribute) {
 				$table = $this->table;
@@ -312,8 +355,18 @@ abstract class Model extends AppComponent
 		return $this;
 	}
 
+	/**
+	 * Fill children in presence of _with statements
+	 * 
+	 * @param  array             $results  Model list
+	 * @param  Relationship|null $relation The relationship
+	 * @return array                       Filled child models
+	 */
 	public function fillChildren(array $results, Relationship $relation = null)
 	{
+		if(isset($results) && !$this->_calledFromSystem()) {
+			throw new ErrorException(self::ERROR_SYSTEM_METHOD);
+		}
 		if(!isset($relation)) {
 			foreach($this->_with as $relation) {
 				$this->fillChildren($results, $relation);
@@ -338,10 +391,9 @@ abstract class Model extends AppComponent
 	/**
 	 * Add or update the model in the database
 	 *
-	 * @param boolean $cascade  If true, delete children and all subchildren
 	 * @return integer          The primary key value of the saved item
 	 */
-	public function save($cascade = false)
+	public function save()
 	{
 		if(isset($this->_attributes[$this->primaryKey])) {
 			$this->_update();
@@ -357,39 +409,13 @@ abstract class Model extends AppComponent
 		return $this->_attributes[$this->primaryKey];
 	}
 
-/*
-	private function ___buildCascadingArraysFromModelArray(array $models, $childModels = array())
-	{
-		$results = array();
-		foreach($models as $model) {
-			$results[] = $this->___buildCascadingArraysFromModel($model, $childModels);
-		}
-		return $results;
-	}
-
-	private function ___buildCascadingArraysFromModel(Model $model, $childModels = array())
-	{
-		// Return early with model if we're at "leaf" model in tree
-		if(empty($childModels)) {
-			return $model->toArray();
-		}
-
-		$arrayedModel = $model->toArray();
-		if(is_array($childModels)) {
-			foreach($childModels as $childModel) {
-				$this->___buildCascadingArraysFromModel($model, $childModel);
-			}
-		}
-		if(!empty($childModels) && is_string($childModels)) {
-			$childModels = explode('.', $childModels);
-			$childModel = array_pop($childModels);
-			$childModels = implode('.', $childModels);
-			$arrayedModel[$childModel] = $this->___buildCascadingArraysFromModelArray($model->{$childModel}, $childModels);
-		}
-		return $arrayedModel;
-	}
-	*/
-
+	/**
+	 * Pull related models with current model selection (intended for static or instance calls)
+	 * 
+	 * @param  string            $children "." delimited list of child element variable names
+	 * @param  QueryBuilder|null $qb       
+	 * @return Model                       The parent-most model
+	 */
 	private function ___with($children, QueryBuilder $qb = null)
 	{
 		if(empty($qb)) {
@@ -412,7 +438,11 @@ abstract class Model extends AppComponent
 		return $this;
 	}
 
-
+	/**
+	 * Pull entire list of model (intended for static or instance calls)
+	 * 
+	 * @return array Array of models of the type that was called
+	 */
 	private function ___all()
 	{
 		$query = call_user_func_array(array($this->_queryBuilder, 'get'), array());
@@ -465,6 +495,12 @@ abstract class Model extends AppComponent
 		return $this->_attributes;
 	}
 
+	/**
+	 * Read models from database and return as array of records
+	 * 
+	 * @param  DbQuery $query The DbQuery object to query the DB with
+	 * @return array          Array of models from a database call         
+	 */
 	public function readFromDatabase(DbQuery $query)
 	{
 		return $this->_db->getCustomQueries($query);
@@ -512,18 +548,11 @@ abstract class Model extends AppComponent
 		}
 	}
 
-	private function _runQuery($queryAndBindings)
-	{
-		if(is_array($queryAndBindings)) {
-			$query = $queryAndBindings[0];
-			$bindings = null;
-			if(sizeof($queryAndBindings) === 2) {
-				$bindings = $queryAndBindings[1];
-			}
-			return $app->database->getCustomQuery($query, $bindings);
-		}
-	}
-
+	/**
+	 * Determine whether calls are made outside of "System" namespace
+	 * 
+	 * @return boolean  True = Call made from "System" namespace, False = Call made outside "System" namespace
+	 */
 	private function _calledFromSystem()
 	{
 		$trace = debug_backtrace();

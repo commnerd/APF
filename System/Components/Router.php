@@ -7,10 +7,22 @@ use AltoRouter;
 
 class Router extends AltoRouter
 {
+	/**
+	 * Resource label for splitting into routes
+	 */
 	const METHOD_RESOURCE = "RESOURCE";
 
+	/**
+	 * The app context for local or related class usage
+	 * 
+	 * @var \System\App
+	 */
 	protected $app;
 
+	/**
+	 * The methods to use with "RESOURCE" routes
+	 * @var array
+	 */
 	private $_controllerMethods = array(
 		"index" => "GET",
 		"create" => "GET",
@@ -20,17 +32,33 @@ class Router extends AltoRouter
 		"destroy" => "DELETE",
 	);
 
+	/**
+	 * Construct the router
+	 * 
+	 * @param \System\App|null $app The app reference
+	 */
 	public function __construct(\System\App $app = null)
 	{
 		$this->app = $app;
 	}
 
+	/**
+	 * Match a route
+	 * @param  string $requestUrl    The URL being requested
+	 * @param  string $requestMethod The method being requested
+	 * @return array                 Route declaration
+	 */
 	public function match($requestUrl = null, $requestMethod = null)
 	{
 		$requestUrl = isset($requestUrl) ? $requestUrl : $_SERVER['REQUEST_URI'];
 		return parent::match($requestUrl, $requestMethod);
 	}
 
+	/**
+	 * Add routes to the system
+	 * 
+	 * @param array $routes Array of routes to register
+	 */
 	public function addRoutes($routes)
 	{
 		$resourceRoutes = array();

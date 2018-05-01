@@ -9,18 +9,53 @@ use System\Components\Relationships\Has;
 class QueryBuilder extends AppComponent
 {
 
+    /**
+     * The primary target table for query
+     * 
+     * @var string
+     */
     private $_table;
 
+    /**
+     * The primary key for the target table
+     * 
+     * @var string
+     */
     private $_primaryKey;
 
+    /**
+     * The ordering declaration
+     * 
+     * @var string
+     */
     private $_orderBy;
 
+    /**
+     * The columns to use in query
+     * 
+     * @var array
+     */
     private $_columns;
 
+    /**
+     * The values to assign to columns
+     * 
+     * @var array
+     */
     private $_values;
 
+    /**
+     * Array of relationships to establish joins
+     * 
+     * @var array
+     */
     private $_joins;
 
+    /**
+     * Array of where declarations
+     * 
+     * @var array
+     */
     private $_where;
 
     /**
@@ -63,11 +98,21 @@ class QueryBuilder extends AppComponent
         return $obj;
     }
 
+    /**
+     * Build get query with bindings
+     * 
+     * @return string Select query with bindings
+     */
     public function get()
     {
         return $this->_buildSelectComponents();
     }
 
+    /**
+     * Build get query with bindings using ID
+     * 
+     * @return string Select query with bindings
+     */
     public function find($id)
     {
         $this->_where[$this->_obj->getKey()] = $id;
@@ -75,6 +120,11 @@ class QueryBuilder extends AppComponent
         return $this->_buildSelectComponents();
     }
 
+    /**
+     * Add a relationship and return this query builder
+     * 
+     * @return \System\Components\QueryBuilder
+     */
     public function join(Relationship $relationship)
     {
         $this->_joins[] = $relationship;
@@ -82,6 +132,19 @@ class QueryBuilder extends AppComponent
         return $this;
     }
 
+    /**
+     * Add a where clause
+     * 
+     * @return \System\Components\QueryBuilder
+     */
+    
+    /**
+     * Add an "and where" clause
+     * @param  string      $column             The column to use in where clause
+     * @param  string      $op                 The operation (if not "="), if empty, $value instead
+     * @param  string|null $value              The value for the where clause if $op omitted
+     * @return \System\Components\QueryBuilder The query builder for use in additional operations
+     */
     public function where($column, $op, $value = null)
     {
         if(empty($value)) {
@@ -92,6 +155,13 @@ class QueryBuilder extends AppComponent
         return $this;
     }
 
+    /**
+     * Add an "or where" clause
+     * @param  string      $column             The column to use in where clause
+     * @param  string      $op                 The operation (if not "="), if empty, $value instead
+     * @param  string|null $value              The value for the where clause if $op omitted
+     * @return \System\Components\QueryBuilder The query builder for use in additional operations
+     */
     public function orWhere($column, $op, $value = null)
     {
         if(empty($value)) {
@@ -346,6 +416,7 @@ class QueryBuilder extends AppComponent
 
     /**
      * Pull value from various context maps
+     * 
      * @param  string $section Variable context (where, updates, etc.)
      * @param  array  $map     Information used to build subquery (glue, qryMapValueType, value, qryString)
      * @return string          The value pulled from the map
