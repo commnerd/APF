@@ -16,5 +16,17 @@
                 "App\\" : "app/",
                 "System\\" : "System/"
         }
-    }
+    },
+    "scripts": {
+        "post-root-package-install": [
+            "@php -r \"cd config && cp global.ini.example global.ini && cp database.ini.example database.ini && cp templating.ini.example templating.ini;\""
+        ]
+    },
+    "config": {
+        "preferred-install": "dev",
+        "sort-packages": true,
+        "optimize-autoloader": true
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": false
 }
