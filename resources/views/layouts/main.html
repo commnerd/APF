@@ -7,6 +7,7 @@
         </title>
         {% block head %}
         {% endblock %}
+        <link rel="stylesheet" type="text/css" href="{{ css() }}">
     </head>
     <body>
         {% block header %}
@@ -15,5 +16,6 @@
         {% endblock %}
         {% block footer %}
         {% endblock %}
+        <script src="{{ js() }}"></script>
     </body>
 </html>

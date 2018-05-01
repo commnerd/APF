@@ -2,10 +2,10 @@
 
 namespace System\Components;
 
+use System\Interfaces\TemplateSystem as TemplateSystemInterface;
 use System\Components\Templating\TwigDriver;
-use System\Interfaces\TemplateSystem;
 
-class TemplateSystem extends AppComponent implements TemplateSystem
+class TemplateSystem extends AppComponent implements TemplateSystemInterface
 {
 	/**
 	 * Error thrown when file not found
@@ -19,17 +19,17 @@ class TemplateSystem extends AppComponent implements TemplateSystem
 	 * @var string
 	 */
 	const SYSTEM_TWIG = "twig";
-	
+
 	/**
 	 * The templating system to use in rendering response
-	 * 
+	 *
 	 * @var string
 	 */
 	private $_system;
 
 	/**
 	 * The driver to use in rendering responses
-	 * 
+	 *
 	 * @var \System\Components\Templating\Driver
 	 */
 	private $_driver;
@@ -39,14 +39,18 @@ class TemplateSystem extends AppComponent implements TemplateSystem
 	 *
 	 * @var array
 	 */
-	private $_cssFiles = array();
+	private $_cssFiles = array(
+		"resources/js/main.css",
+	);
 
 	/**
 	 * The js includes
 	 *
 	 * @var array
 	 */
-	private $_jsFiles = array();
+	private $_jsFiles = array(
+		"resources/js/main.js",
+	);
 
 	/**
 	 * The compiled css path for the template
@@ -72,17 +76,19 @@ class TemplateSystem extends AppComponent implements TemplateSystem
 
 		$this->_system = $this->app->config->get('templating.system');
 
+		$this->registerJsFile("main.js");
+		$this->registerCssFile("main.css");
 
 		switch($this) {
 			case self::SYSTEM_TWIG:
 			default:
-				$this->_driver = new TwigDriver($system)
+				$this->_driver = new TwigDriver($this);
 		}
 	}
 
 	/**
 	 * Add CSS file to array
-	 * 
+	 *
 	 * @param  string $path Path to the CSS file (relative paths start at config location)
 	 * @return void
 	 */
@@ -92,7 +98,7 @@ class TemplateSystem extends AppComponent implements TemplateSystem
 
 	/**
 	 * Add JS file to array
-	 * 
+	 *
 	 * @param  string $path Path to the JS file (relative paths start at config location)
 	 * @return void
 	 */
@@ -102,25 +108,25 @@ class TemplateSystem extends AppComponent implements TemplateSystem
 
 	/**
 	 * Get the CSS
-	 * 
+	 *
 	 * @return string The CSS
 	 */
 	public function getCss() {
-		return $this->_getContents("css")
+		return $this->_getContents("css");
 	}
 
 	/**
 	 * Get the JS
-	 * 
+	 *
 	 * @return string The JS
 	 */
 	public function getJs() {
-		return $this->_getContents("js")
+		return $this->_getContents("js");
 	}
 
 	/**
 	 * Get the servable compiled JS path
-	 * 
+	 *
 	 * @return string The servable file path
 	 */
 	public function getJsCompiledPath()
@@ -130,7 +136,7 @@ class TemplateSystem extends AppComponent implements TemplateSystem
 
 	/**
 	 * Get the servable compiled CSS path
-	 * 
+	 *
 	 * @return string The servable file path
 	 */
 	public function getCssCompiledPath()
@@ -140,12 +146,12 @@ class TemplateSystem extends AppComponent implements TemplateSystem
 
 	/**
 	 * Render the template
-	 * 
+	 *
 	 * @param  string $template The relative path to the route to render
 	 * @param  array  $params   The params to pass to the template
 	 * @return string           The HTML/JSON to pass to the client
 	 */
-	public function render($template, $params)
+	public function render($template, array $params)
 	{
 		$this->_cssCompiledPath = $this->_generateAndWriteToPath("css");
 		$this->_jsCompiledPath = $this->_generateAndWriteToPath("js");
@@ -155,7 +161,7 @@ class TemplateSystem extends AppComponent implements TemplateSystem
 
 	/**
 	 * Get the servable compiled path by context
-	 * 
+	 *
 	 * @return string The servable file path
 	 */
 	private function _getCompiledPath($context) {
@@ -164,7 +170,7 @@ class TemplateSystem extends AppComponent implements TemplateSystem
 
 	/**
 	 * Determine unique md5 name for file
-	 * 
+	 *
 	 * @param  string $context "css" or "js"
 	 * @return string          Filename for file
 	 */
@@ -172,22 +178,25 @@ class TemplateSystem extends AppComponent implements TemplateSystem
 		$writePath = $this->app->getBaseDir().DIRECTORY_SEPARATOR.$this->app->config->get('path.'.$context);
 		$content = $this->{"get".ucfirst($context)}();
 		$fileName = md5($content).".".$context;
-		file_put_contents($writePath.DIRECTORY_SEPARATOR.$fileName);
+		file_put_contents($writePath.DIRECTORY_SEPARATOR.$fileName, $content);
 		return $fileName;
 	}
 
 	/**
 	 * Get file contents based on context
-	 * 
+	 *
 	 * @param  string $context "js" or "css"
 	 * @return void
 	 */
 	private function _getContents($context) {
 		$contents = "";
-		foreach($this->{"_".$context} as $file) {
+		$list = $this->{"_".$context."Files"};
+		foreach($list as $file) {
+
 			$contents .= file_get_contents($file);
 			$contents .= "\n";
 		}
+		exit($contents);
 		return $contents;
 	}
 

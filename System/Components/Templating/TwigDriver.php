@@ -14,21 +14,21 @@ class TwigDriver extends AppComponent implements TemplateSystemDriver
 {
 	/**
 	 * The system used to render templates
-	 * 
+	 *
 	 * @var string
 	 */
 	private $_system;
 
 	/**
 	 * The twig environment used for rendering
-	 * 
+	 *
 	 * @var Twig_Environment
 	 */
 	private $_env;
 
 	/**
 	 * build the template system driver
-	 * 
+	 *
 	 * @param TemplateSystem $system The driver used to build the system
 	 */
 	public function __construct(TemplateSystem $system)
@@ -45,12 +45,12 @@ class TwigDriver extends AppComponent implements TemplateSystemDriver
 
 	/**
 	 * Render the template with its bound data
-	 * 
+	 *
 	 * @param  string $template Relative path to the template to render
 	 * @param  array  $params   Parameters to pass to the renderer
-	 * @return string           The rendered template           
+	 * @return string           The rendered template
 	 */
-	public function render(string $template, array $params = array())
+	public function render($template, array $params = array())
 	{
 		foreach($params as $paramIndex => $param) {
 			if($param instanceof Model) {
@@ -69,7 +69,7 @@ class TwigDriver extends AppComponent implements TemplateSystemDriver
 
 	/**
 	 * Register functions to use within twig
-	 * 
+	 *
 	 * @return void
 	 */
 	private function registerTwigFunctions()
@@ -84,14 +84,14 @@ class TwigDriver extends AppComponent implements TemplateSystemDriver
 			}),
 			new Twig_SimpleFunction('css', function() use ($driverContext) {
 				return $driverContext->_system->getCssCompiledPath();
-			});
-			new Twig_SimpleFunction('js', function() use ($driverContext)) {
+			}),
+			new Twig_SimpleFunction('js', function() use ($driverContext) {
 				return $driverContext->_system->getJsCompiledPath();
-			}
+			}),
 		);
 
 		foreach($functions as $function) {
-			$this->_system->addFunction($function);
+			$this->_env->addFunction($function);
 		}
 	}
 }
