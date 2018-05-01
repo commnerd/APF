@@ -1,4 +1,8 @@
 {
+    "name": "commnerd/apf",
+    "description": "Antiquated PHP Framework designed to work with PHP ~5.3",
+    "keywords": ["framework", "apf"],
+    "type": "project",
     "require": {
         "altorouter/altorouter" : "1.1.0",
         "phpseclib/phpseclib" : "2.0.0",
