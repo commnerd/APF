@@ -8,12 +8,6 @@ use System\Components\Templating\TwigDriver;
 class TemplateSystem extends AppComponent implements TemplateSystemInterface
 {
 	/**
-	 * Error thrown when file not found
-	 *
-	 * @var string
-	 */
-	const FILE_NOT_FOUND = "The resource you registered was not found.";
-	/**
 	 * System-wide name for twig templating system
 	 *
 	 * @var string
@@ -40,7 +34,7 @@ class TemplateSystem extends AppComponent implements TemplateSystemInterface
 	 * @var array
 	 */
 	private $_cssFiles = array(
-		"resources/js/main.css",
+		"main.css",
 	);
 
 	/**
@@ -49,8 +43,22 @@ class TemplateSystem extends AppComponent implements TemplateSystemInterface
 	 * @var array
 	 */
 	private $_jsFiles = array(
-		"resources/js/main.js",
+		"main.js",
 	);
+
+	/**
+	 * The base directory for the js files
+	 *
+	 * @var string
+	 */
+	private $_jsBaseDir = "";
+
+	/**
+	 * The base directory for the js files
+	 *
+	 * @var string
+	 */
+	private $_cssBaseDir = "";
 
 	/**
 	 * The compiled css path for the template
@@ -76,9 +84,12 @@ class TemplateSystem extends AppComponent implements TemplateSystemInterface
 
 		$this->_system = $this->app->config->get('templating.system');
 
-		$this->registerJsFile("main.js");
-		$this->registerCssFile("main.css");
-
+		$this->_cssBaseDir = $this->app->getBaseDir().
+			DIRECTORY_SEPARATOR.
+			$this->app->config->get('templating.path.css');
+		$this->_jsBaseDir = $this->app->getBaseDir().
+			DIRECTORY_SEPARATOR.
+			$this->app->config->get('templating.path.js');
 		switch($this) {
 			case self::SYSTEM_TWIG:
 			default:
@@ -189,14 +200,19 @@ class TemplateSystem extends AppComponent implements TemplateSystemInterface
 	 * @return void
 	 */
 	private function _getContents($context) {
+		$baseDir = $this->{"_".$context."BaseDir"};
 		$contents = "";
 		$list = $this->{"_".$context."Files"};
 		foreach($list as $file) {
-
-			$contents .= file_get_contents($file);
+			while(substr($baseDir, -1) === DIRECTORY_SEPARATOR) {
+				$baseDir = substr($baseDir, 0, -1);
+			}
+			while(substr($file, 0, 1) === DIRECTORY_SEPARATOR) {
+				$file = substr($file, 1);
+			}
+			$contents .= file_get_contents($baseDir.DIRECTORY_SEPARATOR.$file);
 			$contents .= "\n";
 		}
-		exit($contents);
 		return $contents;
 	}
 
@@ -208,24 +224,6 @@ class TemplateSystem extends AppComponent implements TemplateSystemInterface
 	 * @return void
 	 */
 	private function _registerFile($context, $path) {
-		$basePath = $this->app->getBaseDir();
-		$resourcePath = $this->app->config->get('templating.path.'.$context);
-		if(is_array($resourcePath)) {
-			foreach($resourcePath as $path) {
-				$this->_registerFile($context, $path);
-			}
-		}
-		while(substr($resourcePath, -1) === DIRECTORY_SEPARATOR) {
-			$resourcePath = substr($resourcePath, 0, -1);
-		}
-		$path = $basePath.DIRECTORY_SEPARATOR.$resourcePath;
-		if(substr($path, 0, 1) === DIRECTORY_SEPARATOR) {
-			$path = $resourcePath;
-		}
-		if(file_exists($path)) {
-			$this->{"_".$context."Files"}[] = $path;
-			return;
-		}
-		throw new ErrorException(self::FILE_NOT_FOUND);
+		$this->{"_".$context."Files"}[] = $path;
 	}
 }
