@@ -19,7 +19,10 @@
     },
     "scripts": {
         "post-root-package-install": [
-            "@php -r \"cd config && cp global.ini.example global.ini && cp database.ini.example database.ini && cp templating.ini.example templating.ini;\""
+            "php -r \"copy('config/global.ini.example', 'config/global.ini');\"",
+            "php -r \"copy('config/database.ini.example', 'config/database.ini');\"",
+            "php -r \"copy('config/templating.ini.example', 'config/templating.ini');\"",
+            "php -r \"copy('config/email.ini.example', 'config/email.ini');\""
         ]
     },
     "config": {

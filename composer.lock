@@ -4,7 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "384e645ba3e7967886ef231d02ff4324",
+    "hash": "28ae04c1961b8fe3be0826565441e011",
+    "content-hash": "aaf3e02db756ff5fb0bc531cdd4d5fb3",
     "packages": [
         {
             "name": "altorouter/altorouter",
@@ -55,7 +56,7 @@
                 "router",
                 "routing"
             ],
-            "time": "2014-04-16T09:44:40+00:00"
+            "time": "2014-04-16 09:44:40"
         },
         {
             "name": "codeguy/upload",
@@ -102,7 +103,7 @@
                 "upload",
                 "validation"
             ],
-            "time": "2013-07-07T17:01:41+00:00"
+            "time": "2013-07-07 17:01:41"
         },
         {
             "name": "ircmaxell/random-lib",
@@ -155,20 +156,20 @@
                 "random-numbers",
                 "random-strings"
             ],
-            "time": "2013-07-30T17:40:57+00:00"
+            "time": "2013-07-30 17:40:57"
         },
         {
             "name": "ircmaxell/security-lib",
-            "version": "1.0.0",
+            "version": "dev-master",
             "source": {
                 "type": "git",
                 "url": "https://github.com/ircmaxell/SecurityLib.git",
-                "reference": "80934de3c482dcafb46b5756e59ebece082b6dc7"
+                "reference": "d337741719027c14c9fefafc9cd918251831e3e9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/ircmaxell/SecurityLib/zipball/80934de3c482dcafb46b5756e59ebece082b6dc7",
-                "reference": "80934de3c482dcafb46b5756e59ebece082b6dc7",
+                "url": "https://api.github.com/repos/ircmaxell/SecurityLib/zipball/d337741719027c14c9fefafc9cd918251831e3e9",
+                "reference": "d337741719027c14c9fefafc9cd918251831e3e9",
                 "shasum": ""
             },
             "require": {
@@ -177,7 +178,16 @@
             "require-dev": {
                 "mikey179/vfsstream": "1.1.*"
             },
+            "suggest": {
+                "ext-bcmath": "BCMath will be used if GMP is not available",
+                "ext-gmp": "GMP will be used if available"
+            },
             "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "1.0.x-dev"
+                }
+            },
             "autoload": {
                 "psr-0": {
                     "SecurityLib": "lib"
@@ -195,8 +205,8 @@
                 }
             ],
             "description": "A Base Security Library",
-            "homepage": "https://github.com/ircmaxell/PHP-SecurityLib",
-            "time": "2013-04-30T18:00:34+00:00"
+            "homepage": "https://github.com/ircmaxell/SecurityLib",
+            "time": "2016-09-07 15:49:06"
         },
         {
             "name": "phpoffice/phpexcel",
@@ -254,7 +264,7 @@
                 "xlsx"
             ],
             "abandoned": "phpoffice/phpspreadsheet",
-            "time": "2015-05-01T07:00:55+00:00"
+            "time": "2015-05-01 07:00:55"
         },
         {
             "name": "phpseclib/phpseclib",
@@ -342,24 +352,80 @@
                 "x.509",
                 "x509"
             ],
-            "time": "2015-08-04T04:48:03+00:00"
+            "time": "2015-08-04 04:48:03"
         },
         {
-            "name": "twig/twig",
-            "version": "v1.35.3",
+            "name": "symfony/polyfill-ctype",
+            "version": "dev-master",
             "source": {
                 "type": "git",
-                "url": "https://github.com/twigphp/Twig.git",
-                "reference": "b48680b6eb7d16b5025b9bfc4108d86f6b8af86f"
+                "url": "https://github.com/symfony/polyfill-ctype.git",
+                "reference": "7cc359f1b7b80fc25ed7796be7d96adc9b354bae"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/twigphp/Twig/zipball/b48680b6eb7d16b5025b9bfc4108d86f6b8af86f",
-                "reference": "b48680b6eb7d16b5025b9bfc4108d86f6b8af86f",
+                "url": "https://api.github.com/repos/symfony/polyfill-ctype/zipball/7cc359f1b7b80fc25ed7796be7d96adc9b354bae",
+                "reference": "7cc359f1b7b80fc25ed7796be7d96adc9b354bae",
                 "shasum": ""
             },
             "require": {
                 "php": ">=5.3.3"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "1.8-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Symfony\\Polyfill\\Ctype\\": ""
+                },
+                "files": [
+                    "bootstrap.php"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Symfony Community",
+                    "homepage": "https://symfony.com/contributors"
+                },
+                {
+                    "name": "Gert de Pagter",
+                    "email": "BackEndTea@gmail.com"
+                }
+            ],
+            "description": "Symfony polyfill for ctype functions",
+            "homepage": "https://symfony.com",
+            "keywords": [
+                "compatibility",
+                "ctype",
+                "polyfill",
+                "portable"
+            ],
+            "time": "2018-04-30 19:57:29"
+        },
+        {
+            "name": "twig/twig",
+            "version": "1.x-dev",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/twigphp/Twig.git",
+                "reference": "ed02b30a17a4d5e29b7a965c7c5fdc85f9be7bc0"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/twigphp/Twig/zipball/ed02b30a17a4d5e29b7a965c7c5fdc85f9be7bc0",
+                "reference": "ed02b30a17a4d5e29b7a965c7c5fdc85f9be7bc0",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.3",
+                "symfony/polyfill-ctype": "^1.8"
             },
             "require-dev": {
                 "psr/container": "^1.0",
@@ -398,21 +464,21 @@
                 },
                 {
                     "name": "Twig Team",
-                    "homepage": "http://twig.sensiolabs.org/contributors",
+                    "homepage": "https://twig.symfony.com/contributors",
                     "role": "Contributors"
                 }
             ],
             "description": "Twig, the flexible, fast, and secure template language for PHP",
-            "homepage": "http://twig.sensiolabs.org",
+            "homepage": "https://twig.symfony.com",
             "keywords": [
                 "templating"
             ],
-            "time": "2018-03-20T04:25:58+00:00"
+            "time": "2018-05-02 15:04:18"
         }
     ],
     "packages-dev": [],
     "aliases": [],
-    "minimum-stability": "stable",
+    "minimum-stability": "dev",
     "stability-flags": [],
     "prefer-stable": false,
     "prefer-lowest": false,

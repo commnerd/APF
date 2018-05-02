@@ -5,7 +5,7 @@ namespace System\Interfaces\Routing;
 /**
  * The definition of a Router in this system
  */
-interface Router {
+interface Route {
 	/**
 	 * Get the target
 	 * 
