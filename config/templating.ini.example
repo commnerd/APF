@@ -3,6 +3,8 @@
 [twig]
 paths[] = "../resources/views"
 
-cache.path = "../storage/cache/twig"
+path.css = "resources/css"
+path.js  = "resources/js"
+path.cache = "../storage/cache/twig"
 
 system = "twig"

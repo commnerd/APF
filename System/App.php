@@ -73,7 +73,9 @@ class App implements AppInterface
 	 */
 	public function getBaseDir()
 	{
-		return getcwd().DIRECTORY_SEPARATOR.'..';
+		$pathArray = explode(DIRECTORY_SEPARATOR, getcwd());
+		array_pop($pathArray);
+		return implode(DIRECTORY_SEPARATOR, $pathArray);
 	}
 
 	/**
