@@ -11,49 +11,49 @@ class QueryBuilder extends AppComponent
 
     /**
      * The primary target table for query
-     * 
+     *
      * @var string
      */
     private $_table;
 
     /**
      * The primary key for the target table
-     * 
+     *
      * @var string
      */
     private $_primaryKey;
 
     /**
      * The ordering declaration
-     * 
+     *
      * @var string
      */
     private $_orderBy;
 
     /**
      * The columns to use in query
-     * 
+     *
      * @var array
      */
     private $_columns;
 
     /**
      * The values to assign to columns
-     * 
+     *
      * @var array
      */
     private $_values;
 
     /**
      * Array of relationships to establish joins
-     * 
+     *
      * @var array
      */
     private $_joins;
 
     /**
      * Array of where declarations
-     * 
+     *
      * @var array
      */
     private $_where;
@@ -100,7 +100,7 @@ class QueryBuilder extends AppComponent
 
     /**
      * Build get query with bindings
-     * 
+     *
      * @return string Select query with bindings
      */
     public function get()
@@ -110,7 +110,7 @@ class QueryBuilder extends AppComponent
 
     /**
      * Build get query with bindings using ID
-     * 
+     *
      * @return string Select query with bindings
      */
     public function find($id)
@@ -122,7 +122,7 @@ class QueryBuilder extends AppComponent
 
     /**
      * Add a relationship and return this query builder
-     * 
+     *
      * @return \System\Components\QueryBuilder
      */
     public function join(Relationship $relationship)
@@ -134,10 +134,10 @@ class QueryBuilder extends AppComponent
 
     /**
      * Add a where clause
-     * 
+     *
      * @return \System\Components\QueryBuilder
      */
-    
+
     /**
      * Add an "and where" clause
      * @param  string      $column             The column to use in where clause
@@ -234,7 +234,7 @@ class QueryBuilder extends AppComponent
         $keys = array();
         $values = array();
         if(empty($this->_columns)) {
-            $dbQry = new DBQuery("SHOW COLUMNS FROM $this->_table", array());
+            $dbQry = new DbQuery("SHOW COLUMNS FROM $this->_table", array());
             $columns = $this->app->database->getCustomQueries($dbQry);
             $selectors = array();
             foreach($columns as $column) {
@@ -416,7 +416,7 @@ class QueryBuilder extends AppComponent
 
     /**
      * Pull value from various context maps
-     * 
+     *
      * @param  string $section Variable context (where, updates, etc.)
      * @param  array  $map     Information used to build subquery (glue, qryMapValueType, value, qryString)
      * @return string          The value pulled from the map
