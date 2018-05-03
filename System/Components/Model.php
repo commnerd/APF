@@ -19,6 +19,13 @@ use ReflectionClass;
 abstract class Model extends AppComponent implements IteratorAggregate
 {
 	/**
+	 * Find or fail exception
+	 *
+	 * @var string
+	 */
+	const ERROR_EXCEPTION_NOT_FOUND = "The model could not be found.";
+
+	/**
 	 * Deletion error exception message
 	 *
 	 * @var string
@@ -455,6 +462,7 @@ abstract class Model extends AppComponent implements IteratorAggregate
 	 */
 	private function ___all()
 	{
+		$class = get_called_class();
 		$query = call_user_func_array(array($this->_queryBuilder, 'get'), array());
 		$results = $this->app->database->getCustomQueries($query);
 		$objs = array();
@@ -465,6 +473,32 @@ abstract class Model extends AppComponent implements IteratorAggregate
 			}
 		}
 		return $objs;
+	}
+
+	/**
+	 * Find a record by primary key
+	 *
+	 * @param  integer $id The primary key for the model
+	 * @return Model|null  The model if it exists or null
+	 */
+	private function ___find($id)
+	{
+		return $this->_queryBuilder->where($this->getPrimaryKey(), $id)->get();
+	}
+
+	/**
+	 * Find a record by primary key, fail if not found
+	 *
+	 * @param  integer $id The primary key for the model
+	 * @return Model|null  The model if it exists or null
+	 */
+	private function ___findOrFail($id)
+	{
+		$obj = $this->find($id);
+		if(empty($obj)) {
+			throw new Exception(self::ERROR_EXCEPTION_NOT_FOUND);
+		}
+		return $obj;
 	}
 
 	/**
