@@ -8,7 +8,14 @@
 
 {% block content %}
     <section>
-        <h2>Content goes here.</h2>
+        <table>
+        {% for id, section in sections %}
+        <tr>
+            <td>{{ section.LABEL }}</td>
+            <td><a href="{{ route('section.edit', {"ID": section.ID}) }}">Edit</a></td>
+        </tr>
+        {% endfor %}
+        </table>
     </section>
 {% endblock %}
 

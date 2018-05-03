@@ -483,7 +483,8 @@ abstract class Model extends AppComponent implements IteratorAggregate
 	 */
 	private function ___find($id)
 	{
-		return $this->_queryBuilder->where($this->getPrimaryKey(), $id)->get();
+		$this->_queryBuilder->where($this->getPrimaryKey(), $id);
+		return $this->_get();
 	}
 
 	/**
@@ -566,11 +567,32 @@ abstract class Model extends AppComponent implements IteratorAggregate
 	}
 
 	/**
+	 * Get model from the database
+	 *
+	 * @return Model
+	 */
+	private function _get()
+	{
+		$query = $this->_queryBuilder->get();
+		// exit(print_r($query, true));
+		$records = $this->_db->getCustomQueries($query);
+		// exit(print_r($records, true));
+		if(sizeof($records) > 1) {
+			return $this->_cascadeToArray($records);
+		}
+		if(sizeof($records) === 1) {
+			return $this->fill($records[0]);
+		}
+		return array();
+	}
+
+	/**
 	 * Update model in the database
 	 *
 	 * @return void
 	 */
-	private function _update() {
+	private function _update()
+	{
 		$query = $this->_queryBuilder->update($this->toArray());
 		$this->_db->updateRecord($query);
 	}

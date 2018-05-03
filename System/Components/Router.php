@@ -14,7 +14,7 @@ class Router extends AltoRouter
 
 	/**
 	 * The app context for local or related class usage
-	 * 
+	 *
 	 * @var \System\App
 	 */
 	protected $app;
@@ -34,7 +34,7 @@ class Router extends AltoRouter
 
 	/**
 	 * Construct the router
-	 * 
+	 *
 	 * @param \System\App|null $app The app reference
 	 */
 	public function __construct(\System\App $app = null)
@@ -56,7 +56,7 @@ class Router extends AltoRouter
 
 	/**
 	 * Add routes to the system
-	 * 
+	 *
 	 * @param array $routes Array of routes to register
 	 */
 	public function addRoutes($routes)
