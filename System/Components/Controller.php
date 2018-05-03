@@ -2,11 +2,13 @@
 
 namespace System\Components;
 
+use Traversable;
+
 class Controller extends AppComponent
 {
 	/**
 	 * Reference to app's router for internal use
-	 * 
+	 *
 	 * @var \System\Components\Router
 	 */
 	private $_router;
@@ -23,12 +25,12 @@ class Controller extends AppComponent
 
 	/**
 	 * Return view for use in System\App
-	 * 
+	 *
 	 * @param  string                       $template The relative path of the template to be displayed
-	 * @param  array                        $params   The array of parameters to pass to the template
+	 * @param  iterable                     $params   The array of parameters to pass to the template
 	 * @return System\Components\Response             The response to be returned to the client
 	 */
-	public function view($template, $params = array())
+	public function view($template, iterable $params = array())
 	{
 		$params[Response::TYPE_TEMPLATE] = $template;
 
@@ -37,12 +39,12 @@ class Controller extends AppComponent
 
 	/**
 	 * Return view for use in System\App
-	 * 
+	 *
 	 * @param  string                       $name     The redirected route name for the client
-	 * @param  array                        $params   Params for the redirect
+	 * @param  iterable                     $params   Params for the redirect
 	 * @return System\Components\Response             The response to be returned to the client
 	 */
-	public function redirect($name, $params = array())
+	public function redirect($name, iterable $params = array())
 	{
 		$router = $this->_router;
 		$route = "";

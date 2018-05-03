@@ -23,8 +23,8 @@
             "php -r \"copy('config/database.ini.example', 'config/database.ini');\"",
             "php -r \"copy('config/templating.ini.example', 'config/templating.ini');\"",
             "php -r \"copy('config/email.ini.example', 'config/email.ini');\"",
-            "chmod +w public/css",
-            "chmod +w public/js"
+            "chmod a+w public/css",
+            "chmod a+w public/js"
         ]
     },
     "config": {

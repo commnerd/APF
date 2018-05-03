@@ -10,12 +10,13 @@ use System\Services\TextTransforms;
 use System\Components\DbConnection;
 use System\Components\QueryBuilder;
 use System\Interfaces\Relationship;
+use IteratorAggregate;
 use ReflectionClass;
 
 /**
  * Model for use by the system
  */
-abstract class Model extends AppComponent
+abstract class Model extends AppComponent implements IteratorAggregate
 {
 	/**
 	 * Deletion error exception message
@@ -121,7 +122,7 @@ abstract class Model extends AppComponent
 
 	/**
 	 * Static method that leverages QueryBuilder
-	 * 
+	 *
 	 * @param  string $method      The name of the QueryBuilder method to call
 	 * @param  array  $args        Arguments to pass to the method
 	 * @return array|QueryBuilder  Result set or QueryBuilder
@@ -140,7 +141,7 @@ abstract class Model extends AppComponent
 
 	/**
 	 * Forward function call if not explicitely defined
-	 * 
+	 *
 	 * @param  string $method The method to forward
 	 * @param  array  $args   The args to pass
 	 * @return mixed          The returned value
@@ -223,7 +224,7 @@ abstract class Model extends AppComponent
 
 	/**
 	 * Grab the related model
-	 * 
+	 *
 	 * @param  string  $class      The related class
 	 * @param  string  $foreignKey The foreign key to use in lookup
 	 * @param  string  $table      The table to look in if needing override
@@ -237,7 +238,7 @@ abstract class Model extends AppComponent
 
 	/**
 	 * Grab the related models
-	 * 
+	 *
 	 * @param  string  $class      The related class
 	 * @param  string  $foreignKey The foreign key to use in lookup
 	 * @param  string  $table      The table to look in if needing override
@@ -251,7 +252,7 @@ abstract class Model extends AppComponent
 
 	/**
 	 * Grab the related model
-	 * 
+	 *
 	 * @param  string  $class      The related class
 	 * @param  string  $foreignKey The foreign key to use in lookup
 	 * @param  string  $table      The table to look in if needing override
@@ -265,7 +266,7 @@ abstract class Model extends AppComponent
 
 	/**
 	 * Grab the related models
-	 * 
+	 *
 	 * @param  string  $class      The related class
 	 * @param  string  $foreignKey The foreign key to use in lookup
 	 * @param  string  $table      The table to look in if needing override
@@ -357,7 +358,7 @@ abstract class Model extends AppComponent
 
 	/**
 	 * Fill children in presence of _with statements
-	 * 
+	 *
 	 * @param  array             $results  Model list
 	 * @param  Relationship|null $relation The relationship
 	 * @return array                       Filled child models
@@ -410,10 +411,19 @@ abstract class Model extends AppComponent
 	}
 
 	/**
+	 * Implemented for IteratorAggregate interface
+	 *
+	 * @return iterable Attributes array
+	 */
+	public function getIterator() {
+        return $this->_attributes;
+    }
+
+	/**
 	 * Pull related models with current model selection (intended for static or instance calls)
-	 * 
+	 *
 	 * @param  string            $children "." delimited list of child element variable names
-	 * @param  QueryBuilder|null $qb       
+	 * @param  QueryBuilder|null $qb
 	 * @return Model                       The parent-most model
 	 */
 	private function ___with($children, QueryBuilder $qb = null)
@@ -440,7 +450,7 @@ abstract class Model extends AppComponent
 
 	/**
 	 * Pull entire list of model (intended for static or instance calls)
-	 * 
+	 *
 	 * @return array Array of models of the type that was called
 	 */
 	private function ___all()
@@ -450,7 +460,8 @@ abstract class Model extends AppComponent
 		$objs = array();
 		if(!empty($results)) {
 			foreach($results as $row) {
-				$objs[$row[$this->getTable()."_".$this->getPrimaryKey()]] = $this->fill($row, $results);
+				$obj = new $class();
+				$objs[$row[$obj->getTable()."_".$obj->getPrimaryKey()]] = $obj->fill($row, $results);
 			}
 		}
 		return $objs;
@@ -482,11 +493,7 @@ abstract class Model extends AppComponent
 	{
 		foreach($this->_attributes as $key => $value) {
 			if(is_array($value)) {
-				foreach($value as $index => $item) {
-					if($item instanceof Model) {
-						$this->_attributes[$key][$index] = $item->toArray();
-					}
-				}
+				$this->_attributes[$key] = $this->_cascadeToArray($value);
 			}
 			if($value instanceof Model) {
 				$this->_attributes[$key] = $value->toArray();
@@ -496,10 +503,28 @@ abstract class Model extends AppComponent
 	}
 
 	/**
+	 * Cascade down array chains looking for models to cast to arrays
+	 *
+	 * @param  array  $array Arrays full of potential models
+	 * @return array Arrays of converted Models
+	 */
+	private function _cascadeToArray(array $array) {
+		foreach($array as $index => $value) {
+			if(is_array($value)) {
+				$array[$index] = $this->_cascadeToArray($value);
+			}
+			if($item instanceof Model) {
+				$array[$index] = $value->toArray();
+			}
+		}
+		return $array;
+	}
+
+	/**
 	 * Read models from database and return as array of records
-	 * 
+	 *
 	 * @param  DbQuery $query The DbQuery object to query the DB with
-	 * @return array          Array of models from a database call         
+	 * @return array          Array of models from a database call
 	 */
 	public function readFromDatabase(DbQuery $query)
 	{
@@ -550,7 +575,7 @@ abstract class Model extends AppComponent
 
 	/**
 	 * Determine whether calls are made outside of "System" namespace
-	 * 
+	 *
 	 * @return boolean  True = Call made from "System" namespace, False = Call made outside "System" namespace
 	 */
 	private function _calledFromSystem()

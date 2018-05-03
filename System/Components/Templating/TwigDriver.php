@@ -57,14 +57,28 @@ class TwigDriver extends AppComponent implements TemplateSystemDriver
 				$params[$paramIndex] = $param->toArray();
 			}
 			if(is_array($param)) {
-				foreach($param as $valueIndex => $value) {
-					if($value instanceof Model) {
-						$params[$paramIndex][$valueIndex] = $value->toArray();
-					}
-				}
+				$params[$paramIndex] = $this->_cascadeToArray($param);
 			}
 		}
 		return $this->_env->render($template, $params);
+	}
+
+	/**
+	 * Cascade down array chains looking for models to cast to arrays
+	 *
+	 * @param  iterable $array Arrays full of potential models
+	 * @return array               Arrays of converted Models
+	 */
+	private function _cascadeToArray(iterable $array) {
+		foreach($array as $index => $value) {
+			if(is_array($value)) {
+				$array[$index] = $this->_cascadeToArray($value);
+			}
+			if($value instanceof Model) {
+				$array[$index] = $value->toArray();
+			}
+		}
+		return $array;
 	}
 
 	/**
