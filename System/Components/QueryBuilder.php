@@ -209,7 +209,7 @@ class QueryBuilder extends AppComponent
     {
         $this->_columns = $columns;
 
-        return $this->_buildSelectComponents();
+        return $this->_buildUpdateComponents();
     }
 
     /**
@@ -340,23 +340,17 @@ class QueryBuilder extends AppComponent
 		$qry = "UPDATE `".$this->_table."` SET ";
         $qryMap = "";
         $values = array();
-
-        $updates = $this->_obj->toArray();
-        unset($updates[$this->_primaryKey]);
-
-        list($qryUpdate, $qryMapUpdate) = $this->_inputBuilder("updates");
+		list($qryUpdate, $qryMapUpdate) = $this->_inputBuilder("updates");
         $qry .= $qryUpdate;
-        $qryMap .= $qryMapUpdate;
+        $qryMap .= array_shift($qryMapUpdate);
+        $values = array_merge($values, $qryMapUpdate);
 
         $qry .= " WHERE ";
 
         list($qryUpdate, $qryMapUpdate) = $this->_inputBuilder("where");
-		$qry .= $qryUpdate;
-        $qryMap .= $qryMapUpdate;
-
-        $qry .= "`".$this->_primaryKey."` = ?";
-
-        $qryMap .= "i";
+        $qry .= $qryUpdate;
+        $qryMap .= array_shift($qryMapUpdate);
+        $values = array_merge($values, $qryMapUpdate);
 
 		return new DbQuery($qry, array_merge(array($qryMap), $values));
 	}
@@ -389,9 +383,10 @@ class QueryBuilder extends AppComponent
         $subQry = "";
         $values = array();
         $array = ($section === "updates") ? $this->_columns : $this->{"_".$section};
+
         $addGlue = false;
-        foreach($array as $key => $map) {
-            $meta = $this->_getMetaFromMap($section, $map);
+        foreach($array as $key => $value) {
+            $meta = $this->_getMetaFromMap($section, $key, $value);
             if($key !== $this->_primaryKey) {
                 $glue = $addGlue ? $meta[0] : "";
                 $qryMap .= $meta[1];
@@ -410,7 +405,7 @@ class QueryBuilder extends AppComponent
 	 * @return char          The character representing the DB type
 	 */
 	private function _getQryMapValueType($value) {
-		if(is_integer($value)) {
+		if(is_numeric($value)) {
 			return "i";
 		}
 		return "s";
@@ -420,16 +415,17 @@ class QueryBuilder extends AppComponent
      * Pull value from various context maps
      *
      * @param  string $section Variable context (where, updates, etc.)
-     * @param  array  $map     Information used to build subquery (glue, qryMapValueType, value, qryString)
+     * @param  string $key     Accessor for the value
+     * @param  array  $value   Information used to build subquery (glue, qryMapValueType, value, qryString)
      * @return string          The value pulled from the map
      */
-    private function _getMetaFromMap($section, $map)
+    private function _getMetaFromMap($section, $key, $value)
     {
         switch($section) {
             case 'updates':
-                $value = $map[sizeof($map) - 1];
-                return array(',', $this->_getQryMapValueType($value), $value, "`".$map[0]."` = ?");
+                return array(',', $this->_getQryMapValueType($value), $value, "`".$key."` = ?");
             case 'where':
+                $map = $value;
                 $value = $map[sizeof($map) - 1];
                 $modifier = $map[0];
                 $column = $map[1];
