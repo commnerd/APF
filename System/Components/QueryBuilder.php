@@ -234,12 +234,13 @@ class QueryBuilder extends AppComponent
         $keys = array();
         $values = array();
         if(empty($this->_columns)) {
-            $dbQry = new DbQuery("SHOW COLUMNS FROM $this->_table", array());
-            $columns = $this->app->database->getCustomQueries($dbQry);
+            $dbQry = new DbQuery("SELECT * FROM `$this->_table` LIMIT 1", array());
+            $result = $this->app->database->getCustomQueries($dbQry);
+            $columns = array_keys($result[0]);
             $selectors = array();
             foreach($columns as $column) {
-                $subQry = "`$this->_table`.`".$column['Field']."` AS ";
-                $subQry .= "`".$this->_table."_".$column['Field']."`";
+                $subQry = "`$this->_table`.`$column` AS ";
+                $subQry .= "`".$this->_table."_$column`";
                 $selectors[] = $subQry;
             }
 
