@@ -16,10 +16,6 @@ class SectionController extends BaseController
     {
         $section = Section::findOrFail($id);
 
-        $section->LABEL = "CHANGE";
-        $section->save();
-
-        $section = Section::findOrFail($id);
         return $this->view('section.html', array('section' => $section));
     }
 }

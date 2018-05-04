@@ -12,7 +12,7 @@
         {% for id, section in sections %}
         <tr>
             <td>{{ section.LABEL }}</td>
-            <td><a href="{{ route('section.edit', {"ID": section.ID}) }}">Edit</a></td>
+            <td><a href="{{ route('sections.edit', {"ID": section.ID}) }}">Edit</a></td>
         </tr>
         {% endfor %}
         </table>
