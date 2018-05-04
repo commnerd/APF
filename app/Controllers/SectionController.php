@@ -7,11 +7,19 @@ use App\Models\Section;
 
 class SectionController extends BaseController
 {
-    public function edit(Request $request)
+    /**
+     * Manage
+     * @param  integer  $id  The ID of the resource
+     * @return Response      The response
+     */
+    public function edit($id)
     {
-        exit(print_r($request->toArray(), true));
-        $section = Section::findOrFail($request->ID);
-        exit(print_r($section->toArray(), true));
-        return $this->view('welcome.html', array('section' => $section));
+        $section = Section::findOrFail($id);
+
+        $section->LABEL = "CHANGE";
+        $section->save();
+
+        $section = Section::findOrFail($id);
+        return $this->view('section.html', array('section' => $section));
     }
 }

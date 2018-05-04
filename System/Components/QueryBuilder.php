@@ -247,22 +247,23 @@ class QueryBuilder extends AppComponent
             foreach($this->_joins as $relationship) {
                 $class = $relationship->getClass();
                 $obj = new $class();
-                $dbQry = new DBQuery("SHOW COLUMNS FROM ".$obj->getTable(), array());
-                $columns = $this->app->database->getCustomQueries($dbQry);
+                $dbQry = new DBQuery("SELECT * FROM `".$obj->getTable()."` LIMIT 1", array());
+                $result = $this->app->database->getCustomQueries($dbQry);
+                $columns = array_keys($result[0]);
                 foreach($columns as $column) {
-                    $subQry = "`".$obj->getTable()."`.`".$column['Field']."` AS ";
-                    $subQry .= "`".$obj->getTable()."_".$column['Field']."`";
+                    $subQry = "`".$obj->getTable()."`.`".$column."` AS ";
+                    $subQry .= "`".$obj->getTable()."_".$column."`";
                     $selectors[] = $subQry;
                 }
             }
             $qry = preg_replace('/COLS/', implode(", ", $selectors), $qry);
         }
         else {
-            $qry = preg_replace(
-                '/COLS/',
-                '`'.implode('`,`', "`$this->_table`.`$this->_columns`").'`',
-                $qry
-            );
+            $columns = array();
+            foreach($this->_columns as $key => $val) {
+                $columns[] = "`$this->_table`.`$key` AS `".$this->_table."_$key`";
+            }
+            $qry = preg_replace('/COLS/', implode(',', $columns), $qry);
         }
 
         if(!empty($this->_joins)) {

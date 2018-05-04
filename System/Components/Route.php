@@ -13,21 +13,21 @@ class Route
 
     /**
      * The route name
-     * 
+     *
      * @var string
      */
 	private $_name;
 
     /**
      * The route target (fully qualified controller name and method delimited by "#")
-     * 
+     *
      * @var string
      */
 	private $_target;
 
     /**
      * The params to pass to the method
-     * 
+     *
      * @var array
      */
 	private $_params;

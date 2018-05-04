@@ -574,9 +574,7 @@ abstract class Model extends AppComponent implements IteratorAggregate
 	private function _get()
 	{
 		$query = $this->_queryBuilder->get();
-		// exit(print_r($query, true));
 		$records = $this->_db->getCustomQueries($query);
-		// exit(print_r($records, true));
 		if(sizeof($records) > 1) {
 			return $this->_cascadeToArray($records);
 		}
