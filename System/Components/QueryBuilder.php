@@ -59,6 +59,13 @@ class QueryBuilder extends AppComponent
     private $_where;
 
     /**
+     * Has the query been completely built?
+     *
+     * @var boolean  True for ready, False for not
+     */
+    private $_ready;
+
+    /**
      * The QueryBuilder constructor
      *
      * @param string $table      The table to construct the query against
@@ -79,6 +86,8 @@ class QueryBuilder extends AppComponent
         $this->_columns = array();
 
         $this->_joins = array();
+
+        $this->_ready = false;
     }
 
     /**
@@ -89,13 +98,9 @@ class QueryBuilder extends AppComponent
      */
     public function create($objArray)
     {
-        $obj = new $this->_class();
+        $this->_columns = $objArray;
 
-        $obj->fill($objArray);
-
-        $obj->save();
-
-        return $obj;
+        return $this->_buildInsertComponents();
     }
 
     /**
@@ -235,7 +240,7 @@ class QueryBuilder extends AppComponent
         $values = array();
         if(empty($this->_columns)) {
             $dbQry = new DbQuery("SELECT * FROM `$this->_table` LIMIT 1", array());
-            $result = $this->app->database->getCustomQueries($dbQry);
+            $result = $this->app->database->runQuery($dbQry);
             $columns = array_keys($result[0]);
             $selectors = array();
             foreach($columns as $column) {
@@ -248,7 +253,7 @@ class QueryBuilder extends AppComponent
                 $class = $relationship->getClass();
                 $obj = new $class();
                 $dbQry = new DBQuery("SELECT * FROM `".$obj->getTable()."` LIMIT 1", array());
-                $result = $this->app->database->getCustomQueries($dbQry);
+                $result = $this->app->database->runQuery($dbQry);
                 $columns = array_keys($result[0]);
                 foreach($columns as $column) {
                     $subQry = "`".$obj->getTable()."`.`".$column."` AS ";

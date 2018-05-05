@@ -41,35 +41,24 @@ class DbConnection extends AppComponent
 
     }
 
-    public function getCustomQuery($pSQL,$pTheBindVal) {
-		$stmt = $this->connection->prepare($pSQL);
-		if (!is_null($pTheBindVal)) {
-			call_user_func_array(array($stmt, 'bind_param'), $pTheBindVal);
-			//$stmt->bind_param("i", $pTheBindVal);
+	public function runQuery(DbQuery $query)
+	{
+		if(preg_match('/^(SELECT|INSERT|UPDATE|DELETE)/', $query->query, $matches)) {
+			switch(strtoupper($matches[0])) {
+				case 'SELECT':
+					return $this->getCustomQueries($query);
+				case 'INSERT':
+					return $this->addRecord($query);
+				case 'UPDATE':
+					return $this->updateRecord($query);
+				case 'DELETE':
+					return $this->deleteRecord($query);
+			}
 		}
-	    $stmt->execute();
+		return array();
+	}
 
-	    // print_r($stmt->error);
-	    $stmt->store_result();
-	    $row = $this->bind_result_array($stmt);
-	    if(!$stmt->error)
-	    {
-
-	        while($stmt->fetch())
-	            $dataArray = $row;
-
-	    }
-	    $stmt->close();
-	    if (isset($dataArray)) {
-	    	return $dataArray;
-	    	unset($dataArray);
-	    } else {
-	    	return;
-	    }
-
-    }
-
-     public function getCustomQueries(DbQuery $query) {
+    private function getCustomQueries(DbQuery $query) {
 		$pSQL = $query->query;
  		$pTheBindVal = $query->bindings;
 		$stmt = $this->connection->prepare($pSQL);
@@ -106,53 +95,7 @@ class DbConnection extends AppComponent
 
     }
 
-    public function getRecord($pSQL,$pReqID,$pTheClass,$pTheBindVal) {
-		$stmt = $this->connection->prepare($pSQL);
-		if (!is_null($pTheBindVal)) {
-			call_user_func_array(array($stmt, 'bind_param'), $pTheBindVal);
-			//$stmt->bind_param("i", $pTheBindVal);
-		}
-	    $stmt->execute();
-	    $row = $this->bind_result_array($stmt);
-	    if(!$stmt->error)
-	    {
-
-	        while($stmt->fetch())
-	            $dataArray = $row;
-
-	    }
-	    $stmt->close();
-	    if (isset($dataArray)) {
-	    	return $dataArray;
-	    } else {
-	    	return;
-	    }
-
-    }
-
-    public function getRecords($pSQL,$pReqID,$pTheBindVal) {
-		$stmt = $this->connection->prepare($pSQL);
-
-		if (!is_null($pTheBindVal)) {
-			call_user_func_array(array($stmt, 'bind_param'), $pTheBindVal);
-			//$stmt->bind_param("i", $pTheBindVal);
-		}
-	    $stmt->execute();
-	    $row = $this->bind_result_array($stmt);
-	    if(!$stmt->error)
-	    {
-	        while($stmt->fetch())
-	            $dataArray[$row[$pReqID]] = $row;
-	    }
-	    $stmt->close();
-	    if (isset($dataArray)) {
-	    	return $dataArray;
-	    } else {
-	    	return;
-	    }
-    }
-
-    public function addRecord(DbQuery $query) {
+    private function addRecord(DbQuery $query) {
 		$pSQL = $query->query;
 		$pTheBindVal = $query->bindings;
     	$tempBindValArr = implode("||", $pTheBindVal);
@@ -179,89 +122,7 @@ class DbConnection extends AppComponent
 	    return $newID;
     }
 
-    public function updateOrAddRecord($pSQL1,$pSQL2,$pTheBindVal1,$pTheBindVal2) {
-
-    	$tempBindValArr1 = implode("||", $pTheBindVal1);
-    	$tempBindValArr1 = explode("||", $tempBindValArr1);
-
-    	$tempBindValArr2 = implode("||", $pTheBindVal2);
-    	$tempBindValArr2 = explode("||", $tempBindValArr2);
-
-
-        // print_r($tempBindValArr1);
-        // echo "\n0-----\n";
-        // print_r($tempBindValArr2);
-        // echo "\n1-----\n";
-		// var_dump($pSQL1);
-        // echo "\n2-----\n";
-		// var_dump($pSQL2);
-        // echo "\n3-----\n";
-		$stmt = $this->connection->prepare($pSQL1);
-
-		// Return -1 in case of failed query parsing
-		if(is_bool($stmt)) {
-			throw new \Exception('Failed to properly parse update query.');
-		}
-
-        // echo "\n4-----\n";
-		// var_dump($stmt);
-        // echo "\n5-----\n";
-		if (!is_null($pTheBindVal1)) {
-        // echo "\n6-----\n";
-			// print_r($pTheBindVal1);
-        // echo "\n7-----\n";
-			$ref    = new \ReflectionClass('mysqli_stmt');
-        // echo "\n8-----\n";
-			// print_r($ref);
-        // echo "\n9-----\n";
-			$method = $ref->getMethod("bind_param");
-        // echo "\n0-----\n";
-			// print_r($method);
-        // echo "\n------\n";
-        // printf("Error: %s.\n", $this->connection->error);
-        // exit;
-			$method->invokeArgs($stmt,$tempBindValArr1);
-
-			//call_user_func_array(array($stmt, 'bind_param'), $pTheBindVal);
-			//$stmt->bind_param("i", $pTheBindVal);
-		}
-
-	    $stmt->execute();
-
-		if ($this->connection->affected_rows == 0) {
-			$stmt = $this->connection->prepare($pSQL2);
-
-			if(is_bool($stmt)) {
-				throw new \Exception('Failed to properly parse insert query.');
-			}
-				// var_dump($stmt);
-				if (!is_null($pTheBindVal2)) {
-					// print_r($pTheBindVal2);
-					$ref    = new \ReflectionClass('mysqli_stmt');
-					// print_r($ref);
-					$method = $ref->getMethod("bind_param");
-					// print_r($method);
-					$method->invokeArgs($stmt,$tempBindValArr2);
-
-					//call_user_func_array(array($stmt, 'bind_param'), $pTheBindVal);
-					//$stmt->bind_param("i", $pTheBindVal);
-
-        // echo "\n-----\n";
-        // printf("Error: %s.\n", $this->connection->error);
-         // exit;
-
-				}
-			    $stmt->execute();
-		}
-
-		unset($tempBindValArr);
-	    $newID = $stmt->insert_id;
-	    $stmt->close();
-	    //echo '<p>New ID: '.$newID.'<p>';
-	    return $newID;
-    }
-
-    public function updateRecord(DbQuery $query) {
+    private function updateRecord(DbQuery $query) {
 		$pSQL = $query->query;
 		$pTheBindVal = $query->bindings;
     	$tempBindValArr = implode("||", $pTheBindVal);
@@ -288,7 +149,7 @@ class DbConnection extends AppComponent
 	    //return $newID;
     }
 
-    public function deleteRecord($pSQL,$pTheBindVal) {
+    private function deleteRecord($pSQL,$pTheBindVal) {
 		$stmt = $this->connection->prepare($pSQL);
 		if (!is_null($pTheBindVal)) {
 			call_user_func_array(array($stmt, 'bind_param'), $this->_refValues($pTheBindVal));
