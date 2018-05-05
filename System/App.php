@@ -97,6 +97,7 @@ class App implements AppInterface
 	 */
 	public function bootstrap()
 	{
+		$this->_fillValuesForDumbQuery();
 		$this->_setupRequest();
 		$this->_loadConfigs();
 		$this->_loadRoutes();
@@ -132,6 +133,17 @@ class App implements AppInterface
 		$class = get_class($obj);
 		if(!isset($this->{$class})) {
 			$this->{$class} = $obj;
+		}
+	}
+
+	private function _fillValuesForDumbQuery()
+	{
+		if(!isset($_SERVER['REQUEST_METHOD'])) {
+			$_SERVER['REQUEST_METHOD'] = 'GET';
+		}
+
+		if(!isset($_SERVER['REQUEST_URI'])) {
+			$_SERVER['REQUEST_URI'] = '/';
 		}
 	}
 
