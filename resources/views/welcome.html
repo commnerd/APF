@@ -8,8 +8,20 @@
 
 {% block content %}
     <section>
-        <h2>Content goes here.</h2>
+        <h3>Posts</h3>
+        {% if posts|length %}
+        <ul>
+            {% for post in posts %}
+            <li>
+                {{ post.TITLE }}
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p>No posts found</p>
+        {% endif %}
     </section>
+    <a href="{{ route('posts.create') }}">Add Post</a>
 {% endblock %}
 
 {% block footer %}

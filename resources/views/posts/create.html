@@ -1,0 +1,16 @@
+{% extends 'layouts/main.html' %}
+
+{% block header %}
+    <header>
+        <h1>Create Post</h1>
+    </header>
+{% endblock %}
+
+{% block content %}
+    <section>
+        {% include 'posts/form.html' with {
+            "action": route('posts.store'),
+            "method": "POST"
+        } %}
+    </section>
+{% endblock %}
