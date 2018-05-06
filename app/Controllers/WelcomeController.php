@@ -2,12 +2,16 @@
 
 namespace App\Controllers;
 
-use App\Models\Section;
+use App\Models\Post;
 
 class WelcomeController extends BaseController
 {
     public function index()
     {
-        return $this->view('welcome.html');
+        $posts = Post::all();
+
+        return $this->view('welcome.html', array(
+            'posts' => $posts
+        ));
     }
 }

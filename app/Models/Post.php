@@ -6,5 +6,5 @@ class Post extends Model
 {
     protected $fillable = array(
         "TITLE", "CONTENT",
-    )
+    );
 }

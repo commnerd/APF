@@ -27,7 +27,7 @@ class PostController extends BaseController
     {
         Post::create($request->toArray());
 
-        return $this->redirect('back');
+        return $this->redirect('home');
     }
 
     /**
@@ -71,9 +71,9 @@ class PostController extends BaseController
     {
         $post = Post::findOrFail($id);
 
-        $post->fill($request->toArray());
+        $post->update($request->toArray());
 
-        return $this->redirect('back');
+        return $this->redirect('home');
     }
 
     /**
@@ -86,6 +86,6 @@ class PostController extends BaseController
     {
         Post::delete($id);
 
-        return $this->redirect('back');
+        return $this->redirect('home');
     }
 }

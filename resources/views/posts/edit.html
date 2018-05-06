@@ -1,0 +1,16 @@
+{% extends 'layouts/main.html' %}
+
+{% block header %}
+    <header>
+        <h1>Edit Post</h1>
+    </header>
+{% endblock %}
+
+{% block content %}
+    <section>
+        {% include 'posts/form.html' with {
+            "action": route('posts.update', {"ID": post.ID}),
+            "method": "PUT",
+        } %}
+    </section>
+{% endblock %}

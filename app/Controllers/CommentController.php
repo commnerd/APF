@@ -8,26 +8,19 @@ use App\Models\Comment;
 class CommentController extends BaseController
 {
     /**
-     * Generate page for creating a new post
-     *
-     * @return Response
-     */
-    public function create()
-    {
-        return $this->view('comments/create.html');
-    }
-
-    /**
      * Store a new Comment
      *
      * @param  Request $request The request and its attributes
+     * @param  integer $postId  The ID associated with the parent post
      * @return Response
      */
-    public function store(Request $request)
+    public function store(Request $request, $postId)
     {
-        Comment::create($request->toArray);
+        $post = $request->toArray();
+        $post['POST_ID'] = $postId;
+        Comment::create($post);
 
-        $this->redirect('back');
+        return $this->redirect('home');
     }
 
     /**
@@ -58,7 +51,7 @@ class CommentController extends BaseController
 
         $comment->fill($request->toArray());
 
-        return $this->redirect('back');
+        return $this->redirect('home');
     }
 
     /**
@@ -71,6 +64,6 @@ class CommentController extends BaseController
     {
         Comment::delete($id);
 
-        return $this->redirect('back');
+        return $this->redirect('home');
     }
 }
