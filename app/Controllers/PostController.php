@@ -71,7 +71,7 @@ class PostController extends BaseController
     {
         $post = Post::findOrFail($id);
 
-        $post->fill($request->toArray());
+        $post->update($request->toArray());
 
         return $this->redirect('back');
     }
