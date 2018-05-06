@@ -98,9 +98,7 @@ class QueryBuilder extends AppComponent
      */
     public function create($objArray)
     {
-        $this->_columns = $objArray;
-
-        return $this->_buildInsertComponents();
+        return $this->insert($objArray);
     }
 
     /**
@@ -241,6 +239,10 @@ class QueryBuilder extends AppComponent
         if(empty($this->_columns)) {
             $dbQry = new DbQuery("SELECT * FROM `$this->_table` LIMIT 1", array());
             $result = $this->app->database->runQuery($dbQry);
+            if(empty($result)) {
+                $qry = str_replace('COLS', '*', $qry);
+                return new DbQuery($qry, array_merge(array($qryMap), $values));
+            }
             $columns = array_keys($result[0]);
             $selectors = array();
             foreach($columns as $column) {

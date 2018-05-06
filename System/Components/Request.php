@@ -44,7 +44,11 @@ class Request extends AppComponent implements RequestInterface
 	{
 		parent::__construct();
 
-		$this->_method = isset($_REQUEST['_method']) ? $_REQUEST['_method'] : $_SERVER['REQUEST_METHOD'];
+		$this->_method = $_SERVER['REQUEST_METHOD'];
+		if(isset($_REQUEST['_method'])) {
+			$this->_method = $_REQUEST['_method'];
+			unset($_REQUEST['_method']);
+		}
 
 		$this->_headers = $_SERVER;
 

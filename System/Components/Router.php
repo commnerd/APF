@@ -99,4 +99,25 @@ class Router extends AltoRouter
 		}
 		parent::addRoutes($routes);
 	}
+
+	public function generate($routeName, array $params = array())
+	{
+		$route = parent::generate($routeName, $params);
+
+		$routeDef = $this->namedRoutes[$routeName];
+		if(preg_match('/\[.*?:(.*?)\]/', $routeDef, $matches)) {
+			array_shift($matches);
+			foreach($matches as $key) {
+				unset($params[$key]);
+			}
+		}
+		if(!empty($params)) {
+			$pairs = array();
+			foreach($params as $key => $val) {
+				$pairs[] = htmlentities("$key=$val");
+			}
+			$route .= "?".implode("&", $pairs);
+		}
+		return $route;
+	}
 }
