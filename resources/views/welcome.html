@@ -16,7 +16,29 @@
                 {{ post.TITLE }}
                 <a href="{{ route('posts.edit', {"ID" : post.ID }) }}">Edit</a>
                 <a href="{{ route('posts.destroy', {"ID": post.ID, "_method": "DELETE" }) }}">Delete</a>
-            </li>
+                    <ul>
+                        {% if post.COMMENTS %}
+                            {% for comment_id, comment in post.COMMENTS %}
+                            <li class="comment">
+                                <div>
+                                    {{ comment }}
+                                </div>
+                                <div>
+                                    <a href="{{ route('comments.edit', {"ID": comment_id}) }}">Edit</a>
+                                    <a href="{{ route('comments.delete', {"ID": comment_id, "_method": "DELETE"}) }}">Delete</a>
+                                </div>
+                            </li>
+                            {% endfor %}
+                        {% endif %}
+                        <li>
+                            <form action="{{ route('comments.store') }}" method="POST">
+                                <input type="hidden" name="POST_ID" value="{{ post.ID }}" />
+                                <textarea name="comment"></textarea>
+                                <div><button type="submit">Add Comment</button></div>
+                            </form>
+                        </li>
+                    </ul>
+                </li>
             {% endfor %}
         </ul>
         {% else %}
