@@ -394,12 +394,14 @@ abstract class Model extends AppComponent implements IteratorAggregate
 		$class = $relation->getClass();
 
 		foreach($results as $row) {
-			$obj = new $class();
-			if(!empty($relation->getWith())) {
-				$obj->with($relation->getWith());
-			}
-			if(!empty($row[$obj->getTable()."_".$obj->getPrimaryKey()])) {
-				$objs[$row[$obj->getTable()."_".$obj->getPrimaryKey()]] = $obj->fill($row, $results);
+			if($row[$this->table."_".$this->primaryKey] === $this->getKey()) {
+				$obj = new $class();
+				if(!empty($relation->getWith())) {
+					$obj->with($relation->getWith());
+				}
+				if(!empty($row[$obj->getTable()."_".$obj->getPrimaryKey()])) {
+					$objs[$row[$obj->getTable()."_".$obj->getPrimaryKey()]] = $obj->fill($row, $results);
+				}
 			}
 		}
 		return $objs;
