@@ -353,9 +353,11 @@ abstract class Model extends AppComponent implements IteratorAggregate
 
 			}
 			if(!empty($this->_with)) {
+
 				foreach($this->_with as $key => $relation) {
 					$this->_attributes[$key] = $this->fillChildren($results, $relation);
 					array_pop($this->_with);
+
 					if(empty($this->_attributes[$key])) {
 						unset($this->_attributes[$key]);
 					}
@@ -433,6 +435,16 @@ abstract class Model extends AppComponent implements IteratorAggregate
         return $this->_attributes;
     }
 
+    /**
+	 * Method to allow you to set the relationships
+	 * 
+	 * @param array $with The with array to be set locally
+	 * @return void
+	 */
+	public function setWithRelationships(array $with) {
+		$this->_with = $with;
+	}
+
 	/**
 	 * Pull related models with current model selection (intended for static or instance calls)
 	 *
@@ -446,8 +458,10 @@ abstract class Model extends AppComponent implements IteratorAggregate
 			$qb = $this->_queryBuilder;
 		}
 		if(is_array($children)) {
-			foreach($children as $childrenStrings) {
-				$this->with($childrenStrings, $qb);
+			foreach($children as $index => $child) {
+				if(is_string($child)) {
+					$this->with($childrenStrings, $qb);
+				}
 			}
 		}
 		$children = explode('.', $children);
@@ -476,6 +490,7 @@ abstract class Model extends AppComponent implements IteratorAggregate
 		if(!empty($results)) {
 			foreach($results as $row) {
 				$obj = new $class();
+				$obj->setWithRelationships($this->_with);
 				$objs[$row[$obj->getTable()."_".$obj->getPrimaryKey()]] = $obj->fill($row, $results);
 			}
 		}
@@ -490,7 +505,13 @@ abstract class Model extends AppComponent implements IteratorAggregate
 	 */
 	private function ___find($id)
 	{
-		return $this->_queryBuilder->where($this->getPrimaryKey(), $id)->get();
+		$query = $this->_queryBuilder->where($this->getPrimaryKey(), $id)->get();
+
+		$result = $this->_db->runQuery($query);
+
+		$this->fill($result[0]); 
+
+		return $this;
 	}
 
 	/**
@@ -554,7 +575,7 @@ abstract class Model extends AppComponent implements IteratorAggregate
 			if(is_array($value)) {
 				$array[$index] = $this->_cascadeToArray($value);
 			}
-			if($item instanceof Model) {
+			if($value instanceof Model) {
 				$array[$index] = $value->toArray();
 			}
 		}
@@ -608,7 +629,7 @@ abstract class Model extends AppComponent implements IteratorAggregate
 	 */
 	private function _insert() {
 		$query = $this->_queryBuilder->insert($this->toArray());
-		$this->_db->addRecord($query);
+		$this->_db->runQuery($query);
 	}
 
 	/**
