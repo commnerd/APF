@@ -148,6 +148,9 @@ class Router extends AltoRouter
 			if(preg_match('/^\[/')) {
 				$routeName .= "$subName";
 			}
+			if(preg_match('/^\[/')) {
+				$routeName .= "$subName";
+			}
 		}
 		$routeName .= ".".$method;
 		return $routeName;
