@@ -70,8 +70,10 @@ class Router extends AltoRouter
 				if(!empty($methods)) {
 					foreach($methods as $method) {
 						if(isset($this->_controllerMethods[$method])) {
-							$singlizedName = TextTransforms::pluralToSingle($route[1]);
-							$path = ($route[1][0] === "/") ? $route[1] : "/".$route[1];
+							$routeName = $this->_getRouteName($route, $method);
+							$path = ($route[1][0] === DIRECTORY_SEPARATOR) ?
+								$route[1] :
+								DIRECTORY_SEPARATOR.$route[1];
 							if($method === "create") {
 								$path .= "/create";
 							}
@@ -85,7 +87,7 @@ class Router extends AltoRouter
 								$this->_controllerMethods[$method],
 								$path,
 								$route[2]."#".$method,
-								$route[1].".".$method
+								$routeName
 							)));
 						}
 					}
@@ -98,5 +100,53 @@ class Router extends AltoRouter
 			}
 		}
 		parent::addRoutes($routes);
+	}
+
+	/**
+	 * Extension of the generate method to append get variables to query
+	 * @param  string $routeName The name of the route
+	 * @param  array  $params    The parameters passed to the route
+	 * @return string            The route with appended params (if applicable)
+	 */
+	public function generate($routeName, array $params = array())
+	{
+		$route = parent::generate($routeName, $params);
+
+		$routeDef = $this->namedRoutes[$routeName];
+		if(preg_match('/\[.*?:(.*?)\]/', $routeDef, $matches)) {
+			array_shift($matches);
+			foreach($matches as $key) {
+				unset($params[$key]);
+			}
+		}
+		if(!empty($params)) {
+			$pairs = array();
+			foreach($params as $key => $val) {
+				$pairs[] = htmlentities("$key=$val");
+			}
+			$route .= "?".implode("&", $pairs);
+		}
+		return $route;
+	}
+
+	/**
+	 * Form the route name from a resource definition
+	 * @param  array  $route  Route definition as maintained in AltoRouter
+	 * @param  string $method The applicable route verb/method
+	 * @return string         The route name formed from resource definition
+	 */
+	private function _getRouteName(array $route, $method) {
+		$routeDefArray = explode("/", $route[1]);
+		$routeName = "";
+		foreach($routeDefArray as $subName) {
+			if(preg_match('/^[^\[]/', $subName)) {
+				if($routeName !== "") {
+					$routeName .= ".";
+				}
+				$routeName .= "$subName";
+			}
+		}
+		$routeName .= ".".$method;
+		return $routeName;
 	}
 }

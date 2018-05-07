@@ -223,7 +223,7 @@ class App implements AppInterface
 	 */
 	private function _getMappedRoute()
 	{
-		return new Route($this->{'\System\Components\Router'}->match(
+		return new Route($this->router->match(
 			$this->request->getUrl(),
 			$this->request->getMethod()
 		));

@@ -149,7 +149,9 @@ class DbConnection extends AppComponent
 	    //return $newID;
     }
 
-    private function deleteRecord($pSQL,$pTheBindVal) {
+    private function deleteRecord(DbQuery $query) {
+		$pSQL = $query->query;
+		$pTheBindVal = $query->bindings;
 		$stmt = $this->connection->prepare($pSQL);
 		if (!is_null($pTheBindVal)) {
 			call_user_func_array(array($stmt, 'bind_param'), $this->_refValues($pTheBindVal));

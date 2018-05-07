@@ -92,7 +92,7 @@ class TwigDriver extends AppComponent implements TemplateSystemDriver
 		$driverContext = $this;
 
 		$functions = array(
-			new Twig_SimpleFunction('route', function(string $name, iterable $params = array()) use ($app) {
+			new Twig_SimpleFunction('route', function(string $name, array $params = array()) use ($app) {
 				$route = $app->router->generate($name, $params);
 				return $route;
 			}),
