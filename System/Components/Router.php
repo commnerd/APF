@@ -83,16 +83,13 @@ class Router extends AltoRouter
 							if($method === "edit") {
 								$path .= "/edit";
 							}
-							parent::addRoutes(
-								array(
-									array(
-										$this->_controllerMethods[$method],
-										$path,
-										$route[2]."#".$method,
-										$routeName
-									)
-								)
-							);
+
+							parent::addRoutes(array(array(
+								$this->_controllerMethods[$method],
+								$path,
+								$route[2]."#".$method,
+								$routeName
+							)));
 						}
 					}
 				}
