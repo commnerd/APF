@@ -71,6 +71,7 @@ class Router extends AltoRouter
 					foreach($methods as $method) {
 						if(isset($this->_controllerMethods[$method])) {
 							$routeName = $this->_getRouteName($route, $method);
+
 							$path = ($route[1][0] === DIRECTORY_SEPARATOR) ?
 								$route[1] :
 								DIRECTORY_SEPARATOR.$route[1];
