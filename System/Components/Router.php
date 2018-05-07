@@ -70,8 +70,10 @@ class Router extends AltoRouter
 				if(!empty($methods)) {
 					foreach($methods as $method) {
 						if(isset($this->_controllerMethods[$method])) {
-							$singlizedName = TextTransforms::pluralToSingle($route[1]);
-							$path = ($route[1][0] === "/") ? $route[1] : "/".$route[1];
+							$routeName = $this->getRouteName($route, $method);
+							$path = ($route[1][0] === DIRECTORY_SEPARATOR) ?
+								$route[1] :
+								DIRECTORY_SEPARATOR.$route[1];
 							if($method === "create") {
 								$path .= "/create";
 							}
@@ -85,7 +87,7 @@ class Router extends AltoRouter
 								$this->_controllerMethods[$method],
 								$path,
 								$route[2]."#".$method,
-								$route[1].".".$method
+								$routeName
 							)));
 						}
 					}
@@ -119,5 +121,20 @@ class Router extends AltoRouter
 			$route .= "?".implode("&", $pairs);
 		}
 		return $route;
+	}
+
+	private function getRouteName(array $route, $method) {
+		$routeDefArray = explode("/", $route[1]);
+		$routeName = "";
+		foreach($routeDefArray as $subName) {
+			if(preg_match('/^[^\[]/', $subName)) {
+				if($routeName !== "") {
+					$routeName .= ".";
+				}
+				$routeName .= "$subName";
+			}
+		}
+		$routeName .= ".".$method;
+		return $routeName;
 	}
 }
