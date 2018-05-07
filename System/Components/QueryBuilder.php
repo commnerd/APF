@@ -59,6 +59,13 @@ class QueryBuilder extends AppComponent
     private $_where;
 
     /**
+     * Has the query been completely built?
+     *
+     * @var boolean  True for ready, False for not
+     */
+    private $_ready;
+
+    /**
      * The QueryBuilder constructor
      *
      * @param string $table      The table to construct the query against
@@ -79,6 +86,8 @@ class QueryBuilder extends AppComponent
         $this->_columns = array();
 
         $this->_joins = array();
+
+        $this->_ready = false;
     }
 
     /**
@@ -89,13 +98,7 @@ class QueryBuilder extends AppComponent
      */
     public function create($objArray)
     {
-        $obj = new $this->_class();
-
-        $obj->fill($objArray);
-
-        $obj->save();
-
-        return $obj;
+        return $this->insert($objArray);
     }
 
     /**
@@ -209,7 +212,7 @@ class QueryBuilder extends AppComponent
     {
         $this->_columns = $columns;
 
-        return $this->_buildSelectComponents();
+        return $this->_buildUpdateComponents();
     }
 
     /**
@@ -234,34 +237,40 @@ class QueryBuilder extends AppComponent
         $keys = array();
         $values = array();
         if(empty($this->_columns)) {
-            $dbQry = new DbQuery("SHOW COLUMNS FROM $this->_table", array());
-            $columns = $this->app->database->getCustomQueries($dbQry);
+            $dbQry = new DbQuery("SELECT * FROM `$this->_table` LIMIT 1", array());
+            $result = $this->app->database->runQuery($dbQry);
+            if(empty($result)) {
+                $qry = str_replace('COLS', '*', $qry);
+                return new DbQuery($qry, array_merge(array($qryMap), $values));
+            }
+            $columns = array_keys($result[0]);
             $selectors = array();
             foreach($columns as $column) {
-                $subQry = "`$this->_table`.`".$column['Field']."` AS ";
-                $subQry .= "`".$this->_table."_".$column['Field']."`";
+                $subQry = "`$this->_table`.`$column` AS ";
+                $subQry .= "`".$this->_table."_$column`";
                 $selectors[] = $subQry;
             }
 
             foreach($this->_joins as $relationship) {
                 $class = $relationship->getClass();
                 $obj = new $class();
-                $dbQry = new DBQuery("SHOW COLUMNS FROM ".$obj->getTable(), array());
-                $columns = $this->app->database->getCustomQueries($dbQry);
+                $dbQry = new DBQuery("SELECT * FROM `".$obj->getTable()."` LIMIT 1", array());
+                $result = $this->app->database->runQuery($dbQry);
+                $columns = array_keys($result[0]);
                 foreach($columns as $column) {
-                    $subQry = "`".$obj->getTable()."`.`".$column['Field']."` AS ";
-                    $subQry .= "`".$obj->getTable()."_".$column['Field']."`";
+                    $subQry = "`".$obj->getTable()."`.`".$column."` AS ";
+                    $subQry .= "`".$obj->getTable()."_".$column."`";
                     $selectors[] = $subQry;
                 }
             }
             $qry = preg_replace('/COLS/', implode(", ", $selectors), $qry);
         }
         else {
-            $qry = preg_replace(
-                '/COLS/',
-                '`'.implode('`,`', "`$this->_table`.`$this->_columns`").'`',
-                $qry
-            );
+            $columns = array();
+            foreach($this->_columns as $key => $val) {
+                $columns[] = "`$this->_table`.`$key` AS `".$this->_table."_$key`";
+            }
+            $qry = preg_replace('/COLS/', implode(',', $columns), $qry);
         }
 
         if(!empty($this->_joins)) {
@@ -338,23 +347,17 @@ class QueryBuilder extends AppComponent
 		$qry = "UPDATE `".$this->_table."` SET ";
         $qryMap = "";
         $values = array();
-
-        $updates = $this->_obj->toArray();
-        unset($updates[$this->_primaryKey]);
-
-        list($qryUpdate, $qryMapUpdate) = $this->_inputBuilder("updates");
+		list($qryUpdate, $qryMapUpdate) = $this->_inputBuilder("updates");
         $qry .= $qryUpdate;
-        $qryMap .= $qryMapUpdate;
+        $qryMap .= array_shift($qryMapUpdate);
+        $values = array_merge($values, $qryMapUpdate);
 
         $qry .= " WHERE ";
 
         list($qryUpdate, $qryMapUpdate) = $this->_inputBuilder("where");
-		$qry .= $qryUpdate;
-        $qryMap .= $qryMapUpdate;
-
-        $qry .= "`".$this->_primaryKey."` = ?";
-
-        $qryMap .= "i";
+        $qry .= $qryUpdate;
+        $qryMap .= array_shift($qryMapUpdate);
+        $values = array_merge($values, $qryMapUpdate);
 
 		return new DbQuery($qry, array_merge(array($qryMap), $values));
 	}
@@ -387,9 +390,10 @@ class QueryBuilder extends AppComponent
         $subQry = "";
         $values = array();
         $array = ($section === "updates") ? $this->_columns : $this->{"_".$section};
+
         $addGlue = false;
-        foreach($array as $key => $map) {
-            $meta = $this->_getMetaFromMap($section, $map);
+        foreach($array as $key => $value) {
+            $meta = $this->_getMetaFromMap($section, $key, $value);
             if($key !== $this->_primaryKey) {
                 $glue = $addGlue ? $meta[0] : "";
                 $qryMap .= $meta[1];
@@ -408,7 +412,7 @@ class QueryBuilder extends AppComponent
 	 * @return char          The character representing the DB type
 	 */
 	private function _getQryMapValueType($value) {
-		if(is_integer($value)) {
+		if(is_numeric($value)) {
 			return "i";
 		}
 		return "s";
@@ -418,16 +422,17 @@ class QueryBuilder extends AppComponent
      * Pull value from various context maps
      *
      * @param  string $section Variable context (where, updates, etc.)
-     * @param  array  $map     Information used to build subquery (glue, qryMapValueType, value, qryString)
+     * @param  string $key     Accessor for the value
+     * @param  array  $value   Information used to build subquery (glue, qryMapValueType, value, qryString)
      * @return string          The value pulled from the map
      */
-    private function _getMetaFromMap($section, $map)
+    private function _getMetaFromMap($section, $key, $value)
     {
         switch($section) {
             case 'updates':
-                $value = $map[sizeof($map) - 1];
-                return array(',', $this->_getQryMapValueType($value), $value, "`".$map[0]."` = ?");
+                return array(',', $this->_getQryMapValueType($value), $value, "`".$key."` = ?");
             case 'where':
+                $map = $value;
                 $value = $map[sizeof($map) - 1];
                 $modifier = $map[0];
                 $column = $map[1];

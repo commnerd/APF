@@ -14,7 +14,7 @@ class Router extends AltoRouter
 
 	/**
 	 * The app context for local or related class usage
-	 * 
+	 *
 	 * @var \System\App
 	 */
 	protected $app;
@@ -34,7 +34,7 @@ class Router extends AltoRouter
 
 	/**
 	 * Construct the router
-	 * 
+	 *
 	 * @param \System\App|null $app The app reference
 	 */
 	public function __construct(\System\App $app = null)
@@ -56,7 +56,7 @@ class Router extends AltoRouter
 
 	/**
 	 * Add routes to the system
-	 * 
+	 *
 	 * @param array $routes Array of routes to register
 	 */
 	public function addRoutes($routes)
@@ -98,5 +98,26 @@ class Router extends AltoRouter
 			}
 		}
 		parent::addRoutes($routes);
+	}
+
+	public function generate($routeName, array $params = array())
+	{
+		$route = parent::generate($routeName, $params);
+
+		$routeDef = $this->namedRoutes[$routeName];
+		if(preg_match('/\[.*?:(.*?)\]/', $routeDef, $matches)) {
+			array_shift($matches);
+			foreach($matches as $key) {
+				unset($params[$key]);
+			}
+		}
+		if(!empty($params)) {
+			$pairs = array();
+			foreach($params as $key => $val) {
+				$pairs[] = htmlentities("$key=$val");
+			}
+			$route .= "?".implode("&", $pairs);
+		}
+		return $route;
 	}
 }
