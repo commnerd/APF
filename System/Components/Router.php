@@ -140,7 +140,6 @@ class Router extends AltoRouter
 	 */
 	private function _getRouteName(array $route, $method) {
 		$routeDefArray = explode(DIRECTORY_SEPARATOR, $route[1]);
-		echo(print_r($route, true));
 		$routeName = "";
 		foreach($routeDefArray as $subName) {
 			if(!preg_match("/^\[/", $subName)) {
