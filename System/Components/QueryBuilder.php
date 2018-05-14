@@ -1,5 +1,4 @@
 <?php
-
 namespace System\Components;
 
 use System\Components\Relationships\Relationship;
@@ -8,7 +7,6 @@ use System\Components\Relationships\Has;
 
 class QueryBuilder extends AppComponent
 {
-
     /**
      * The primary target table for query
      *
@@ -24,11 +22,23 @@ class QueryBuilder extends AppComponent
     private $_primaryKey;
 
     /**
+     * Array of relationships to establish joins
+     *
+     * @var array
+     */
+    private $_joins;
+
+    /**
      * The ordering declaration
      *
      * @var string
      */
     private $_orderBy;
+
+    /**
+     * Order by direction
+     */
+    private $_orderByDirection;
 
     /**
      * The columns to use in query
@@ -43,27 +53,13 @@ class QueryBuilder extends AppComponent
      * @var array
      */
     private $_values;
-
-    /**
-     * Array of relationships to establish joins
-     *
-     * @var array
-     */
-    private $_joins;
-
+    
     /**
      * Array of where declarations
      *
      * @var array
      */
     private $_where;
-
-    /**
-     * Has the query been completely built?
-     *
-     * @var boolean  True for ready, False for not
-     */
-    private $_ready;
 
     /**
      * The QueryBuilder constructor
@@ -74,20 +70,13 @@ class QueryBuilder extends AppComponent
     public function __construct($table, $primaryKey)
     {
         parent::__construct();
-
         $this->_table = $table;
-
         $this->_primaryKey = $primaryKey;
-
-        $this->_where = array();
-
-        $this->_orderBy = "";
-
-        $this->_columns = array();
-
         $this->_joins = array();
-
-        $this->_ready = false;
+        $this->_where = array();
+        $this->_orderBy = array();
+        $this->_orderByDirection = "ASC";
+        $this->_columns = array();
     }
 
     /**
@@ -119,7 +108,6 @@ class QueryBuilder extends AppComponent
     public function find($id)
     {
         $this->_where[$this->_obj->getKey()] = $id;
-
         return $this->_buildSelectComponents();
     }
 
@@ -136,12 +124,6 @@ class QueryBuilder extends AppComponent
     }
 
     /**
-     * Add a where clause
-     *
-     * @return \System\Components\QueryBuilder
-     */
-
-    /**
      * Add an "and where" clause
      * @param  string      $column             The column to use in where clause
      * @param  string      $op                 The operation (if not "="), if empty, $value instead
@@ -151,10 +133,10 @@ class QueryBuilder extends AppComponent
     public function where($column, $op, $value = null)
     {
         if(empty($value)) {
-            $this->_where[] = array(' AND ', $column, $op);
+            $this->_where[] = array('AND', $column, $op);
             return $this;
         }
-        $this->_where[] = array(' AND ', $column, $op, $value);
+        $this->_where[] = array('AND', $column, $op, $value);
         return $this;
     }
 
@@ -169,9 +151,28 @@ class QueryBuilder extends AppComponent
     {
         if(empty($value)) {
             $this->_where[] = array('OR', $column, $op);
-            return;
+            return $this;
         }
         $this->_whereNot[] = array('OR', $column, $op, $value);
+        return $this;
+    }
+
+    /**
+     * Set order-by variable(s)
+     * 
+     * @param  array|string $columns Columns to add to order-by
+     * @return QueryBuilder          This QueryBuilder instance for further refinement
+     */
+    public function orderBy($columns, $modifier = null) {
+        if(is_array($columns)) {
+            $this->_orderBy = array_merge($this->_orderBy, $columns);
+        }
+        if(is_string($columns)) {
+             $this->_orderBy[] = $columns;
+        }
+        if(!empty($modifier)) {
+            $this->_orderByDirection = $modifier;
+        }
 
         return $this;
     }
@@ -185,7 +186,6 @@ class QueryBuilder extends AppComponent
     public function insert($columns)
     {
         $this->_columns = $columns;
-
         return $this->_buildInsertComponents();
     }
 
@@ -198,7 +198,6 @@ class QueryBuilder extends AppComponent
     public function select($columns = null)
     {
         $this->_columns = $columns;
-
         return $this->_buildSelectComponents();
     }
 
@@ -211,7 +210,6 @@ class QueryBuilder extends AppComponent
     public function update($columns)
     {
         $this->_columns = $columns;
-
         return $this->_buildUpdateComponents();
     }
 
@@ -250,19 +248,6 @@ class QueryBuilder extends AppComponent
                 $subQry .= "`".$this->_table."_$column`";
                 $selectors[] = $subQry;
             }
-
-            foreach($this->_joins as $relationship) {
-                $class = $relationship->getClass();
-                $obj = new $class();
-                $dbQry = new DBQuery("SELECT * FROM `".$obj->getTable()."` LIMIT 1", array());
-                $result = $this->app->database->runQuery($dbQry);
-                $columns = array_keys($result[0]);
-                foreach($columns as $column) {
-                    $subQry = "`".$obj->getTable()."`.`".$column."` AS ";
-                    $subQry .= "`".$obj->getTable()."_".$column."`";
-                    $selectors[] = $subQry;
-                }
-            }
             $qry = preg_replace('/COLS/', implode(", ", $selectors), $qry);
         }
         else {
@@ -273,45 +258,25 @@ class QueryBuilder extends AppComponent
             $qry = preg_replace('/COLS/', implode(',', $columns), $qry);
         }
 
-        if(!empty($this->_joins)) {
-            foreach($this->_joins as $relationship) {
-                $class = $relationship->getClass();
-                $src = $relationship->getSourceModel();
-                $obj = new $class();
-                if($relationship instanceof Belongs) {
-                    $qry .= " RIGHT JOIN ";
-                }
-                else {
-                    $qry .= " LEFT JOIN ";
-                    $qry .= "`".$obj->getTable()."` ON ";
-                    $qry .= "`".$src->getTable()."`.`".$src->getPrimaryKey()."` = ";
-                    $qry .= "`".$obj->getTable()."`.`".$relationship->getKey()."`";
-                }
-
+        foreach($this->_joins as $relationship) {
+            $class = $relationship->getClass();
+            $obj = new $class();
+            $dbQry = new DBQuery("SELECT * FROM `".$obj->getTable()."` LIMIT 1", array());
+           $result = $this->app->database->runQuery($dbQry);
+            $columns = array_keys($result[0]);
+            foreach($columns as $column) {
+                $subQry = "`".$obj->getTable()."`.`".$column."` AS ";
+                $subQry .= "`".$obj->getTable()."_".$column."`";
+                $selectors[] = $subQry;
             }
         }
 
         if(!empty($this->_where)) {
-            $qry .= " WHERE ";
+            list($qryUpdate, $qryMapUpdate) = $this->_inputBuilder("where");
+            $qryMap .= array_shift($qryMapUpdate);
+            $values = array_merge($values, $qryMapUpdate);
+            $qry .= " WHERE ".$qryUpdate;
         }
-
-        foreach($this->_where as $key => $value) {
-            $input = $value[2];
-            if(sizeof($value) == 4) {
-                $input = $value[3];
-            }
-            if($key > 0) {
-                $qry .= $value[0]." ";
-            }
-            $qry .= "`".$value[1]."` = ?";
-            $qryMap .= $this->_getQryMapValueType($input);
-            $values[] = $input;
-        }
-
-        if(!empty($this->_orderBy)) {
-            $qry .= " ORDER BY `$this->_orderBy`";
-        }
-
         return new DbQuery($qry, array_merge(array($qryMap), $values));
     }
 
@@ -334,7 +299,6 @@ class QueryBuilder extends AppComponent
 		}
 		$qry = preg_replace('/KEYS/', implode('`,`', $keys), $qry);
 		$qry = preg_replace('/VALS/', implode(",", $questionMarks), $qry);
-
 		return new DbQuery($qry, array_merge(array($qryMap), $values));
 	}
 
@@ -351,14 +315,11 @@ class QueryBuilder extends AppComponent
         $qry .= $qryUpdate;
         $qryMap .= array_shift($qryMapUpdate);
         $values = array_merge($values, $qryMapUpdate);
-
         $qry .= " WHERE ";
-
         list($qryUpdate, $qryMapUpdate) = $this->_inputBuilder("where");
         $qry .= $qryUpdate;
         $qryMap .= array_shift($qryMapUpdate);
         $values = array_merge($values, $qryMapUpdate);
-
 		return new DbQuery($qry, array_merge(array($qryMap), $values));
 	}
 
@@ -371,12 +332,12 @@ class QueryBuilder extends AppComponent
     {
         $qry = "DELETE FROM `".$this->_table."` WHERE ";
         $qryMap = "";
-
+        $values = array();
         list($qryUpdate, $qryMapUpdate) = $this->_inputBuilder("where");
         $qry .= $qryUpdate;
         $qryMap .= array_shift($qryMapUpdate);
-
-        return new DbQuery($qry, array_merge(array($qryMap), array_splice($qryMapUpdate, 0, 1)));
+        $values = array_merge($values, $qryMapUpdate);
+        return new DbQuery($qry, array_merge(array($qryMap), $values));
     }
 
     /**
@@ -390,17 +351,22 @@ class QueryBuilder extends AppComponent
         $subQry = "";
         $values = array();
         $array = ($section === "updates") ? $this->_columns : $this->{"_".$section};
-
         $addGlue = false;
         foreach($array as $key => $value) {
-            $meta = $this->_getMetaFromMap($section, $key, $value);
-            if($key !== $this->_primaryKey) {
-                $glue = $addGlue ? $meta[0] : "";
-                $qryMap .= $meta[1];
-                $values[] = $meta[2];
-                $subQry .= $glue.$meta[3];
-                $addGlue = true;
+            if($key === $this->_primaryKey) {
+                $this->where($this->_primaryKey, $value);
+                continue;
             }
+            
+            $meta = $this->_getMetaFromMap($section, $key, $value);
+
+            $glue = $addGlue ? " $meta[0] " : "";
+            $qryMap .= $meta[1];
+            if(!empty($meta[2])) {
+                $values[] = $meta[2];
+            }
+            $subQry .= $glue.$meta[3];
+            $addGlue = true;
         }
         return array($subQry, array_merge(array($qryMap), $values));
     }
@@ -417,7 +383,7 @@ class QueryBuilder extends AppComponent
 		}
 		return "s";
 	}
-
+    
     /**
      * Pull value from various context maps
      *
@@ -430,6 +396,9 @@ class QueryBuilder extends AppComponent
     {
         switch($section) {
             case 'updates':
+                if($key === $this->_primaryKey) {
+                    $this->where($this->_primaryKey, $value);
+                }
                 return array(',', $this->_getQryMapValueType($value), $value, "`".$key."` = ?");
             case 'where':
                 $map = $value;
@@ -437,6 +406,22 @@ class QueryBuilder extends AppComponent
                 $modifier = $map[0];
                 $column = $map[1];
                 $op = sizeof($map) === 4 ? $map[2] : "=";
+                if(preg_match('/in/i', $op)) {
+                    if(is_array($value)) {
+                        $questionMarks = array();
+                        $typeMap = "";
+                        foreach($value as $item) {
+                            $typeMap .= $this->_getQryMapValueType($item);
+                            $questionMarks[] = '?';
+                        }
+                        return array($modifier, $typeMap, $value, "`$column` IN (".implode(',', $questionMarks).")");
+                    }
+
+                    return array($modifier, "", null, "`$column` IN ($value)");
+                }
+                if($value === 'NULL') {
+                    return array($modifier, "", $value, "`$column` $op NULL");
+                }
                 return array($modifier, $this->_getQryMapValueType($value), $value, "`$column` $op ?");
         }
     }
