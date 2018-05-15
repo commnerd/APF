@@ -65,7 +65,7 @@ class Controller extends AppComponent
 	{
 		$router = $this->_router;
 		if(preg_match('/^(prev|back)$/', $name)) {
-			return $_SERVER['HTTP_REFERER'];
+			return $this->app->session->get('history');
 		}
 		return $router->generate($name, $params);
 	}
