@@ -7,6 +7,7 @@ use System\Services\DirectoryScanner;
 use System\Components\AppComponent;
 use System\Components\ConfigReader;
 use System\Components\DbConnection;
+use System\Components\Response;
 use System\Components\Config;
 use System\Components\Router;
 use System\Components\Route;
@@ -97,6 +98,7 @@ class App implements AppInterface
 	 */
 	public function bootstrap()
 	{
+		$this->_initSession();
 		$this->_fillValuesForDumbQuery();
 		$this->_setupRequest();
 		$this->_loadConfigs();
@@ -105,6 +107,16 @@ class App implements AppInterface
 		$this->_runMiddlewares();
 		$route = $this->_getMappedRoute();
 		$this->_loadResponse($route);
+	}
+
+	/**
+	 * Intilize the session for this instance
+	 *
+	 * @return void
+	 */
+	public function _initSession()
+	{
+		$this->_mapComponent('session', "\System\Components\Session");
 	}
 
 	/**
@@ -118,8 +130,8 @@ class App implements AppInterface
 		$type = $response->type;
 		$params = array_merge($response->params, $this->config->get());
 		switch($type) {
-			case $response::TYPE_REDIRECT:
-				header('Location: '.$params['route']);
+			case Response::TYPE_REDIRECT:
+				header('Location: '.$response->route);
 				http_response_code($response->code);
 				break;
 			default:

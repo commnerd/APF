@@ -71,6 +71,7 @@ class Router extends AltoRouter
 					foreach($methods as $method) {
 						if(isset($this->_controllerMethods[$method])) {
 							$routeName = $this->_getRouteName($route, $method);
+
 							$path = ($route[1][0] === DIRECTORY_SEPARATOR) ?
 								$route[1] :
 								DIRECTORY_SEPARATOR.$route[1];
@@ -83,6 +84,7 @@ class Router extends AltoRouter
 							if($method === "edit") {
 								$path .= "/edit";
 							}
+
 							parent::addRoutes(array(array(
 								$this->_controllerMethods[$method],
 								$path,
@@ -131,19 +133,17 @@ class Router extends AltoRouter
 
 	/**
 	 * Form the route name from a resource definition
+	 *
 	 * @param  array  $route  Route definition as maintained in AltoRouter
 	 * @param  string $method The applicable route verb/method
 	 * @return string         The route name formed from resource definition
 	 */
 	private function _getRouteName(array $route, $method) {
-		$routeDefArray = explode("/", $route[1]);
+		$routeDefArray = explode(DIRECTORY_SEPARATOR, $route[1]);
 		$routeName = "";
 		foreach($routeDefArray as $subName) {
-			if(preg_match('/^[^\[]/', $subName)) {
-				if($routeName !== "") {
-					$routeName .= ".";
-				}
-				$routeName .= "$subName";
+			if(!preg_match("/^\[/", $subName)) {
+				$routeName .= $subName.".";
 			}
 		}
 		$routeName .= $method;
