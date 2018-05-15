@@ -97,6 +97,7 @@ class App implements AppInterface
 	 */
 	public function bootstrap()
 	{
+		$this->_initSession();
 		$this->_fillValuesForDumbQuery();
 		$this->_setupRequest();
 		$this->_loadConfigs();
@@ -105,6 +106,16 @@ class App implements AppInterface
 		$this->_runMiddlewares();
 		$route = $this->_getMappedRoute();
 		$this->_loadResponse($route);
+	}
+
+	/**
+	 * Intilize the session for this instance
+	 *
+	 * @return void
+	 */
+	public function _initSession()
+	{
+		$this->_mapComponent('session', "\System\Components\Session");
 	}
 
 	/**
@@ -184,6 +195,7 @@ class App implements AppInterface
 		foreach($files as $file) {
 			$router->addRoutes(include($file));
 		}
+		exit(print_r($router, true));
 		$this->_componentMap['\System\Components\Router'] = $router;
 		$this->_componentAliasMap['router'] = '\System\Components\Router';
 	}
