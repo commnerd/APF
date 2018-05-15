@@ -7,6 +7,7 @@ use System\Services\DirectoryScanner;
 use System\Components\AppComponent;
 use System\Components\ConfigReader;
 use System\Components\DbConnection;
+use System\Components\Response;
 use System\Components\Config;
 use System\Components\Router;
 use System\Components\Route;
@@ -129,12 +130,13 @@ class App implements AppInterface
 		$type = $response->type;
 		$params = array_merge($response->params, $this->config->get());
 		switch($type) {
-			case $response::TYPE_REDIRECT:
-				header('Location: '.$params['route']);
+			case Response::TYPE_REDIRECT:
+				header('Location: '.$response->route);
 				http_response_code($response->code);
 				break;
 			default:
 				echo $this->{'\System\Components\TemplateSystem'}->render($response->template, $params);
+				$this->_recordInHistory();
 				break;
 		}
 	}
@@ -195,7 +197,6 @@ class App implements AppInterface
 		foreach($files as $file) {
 			$router->addRoutes(include($file));
 		}
-		exit(print_r($router, true));
 		$this->_componentMap['\System\Components\Router'] = $router;
 		$this->_componentAliasMap['router'] = '\System\Components\Router';
 	}
@@ -294,6 +295,12 @@ class App implements AppInterface
 		return $paramTypes;
 	}
 
+	/**
+	 * Get the values for the controller that's generating the response
+	 *
+	 * @param  array $paramTypes Type type-hinted types
+	 * @return array             The mapped-paramters to pass to the method
+	 */
 	private function _getParamValues($paramTypes) {
 		$routeParams = $this->_getMappedRoute()->params;
 		$params = array();
@@ -306,5 +313,15 @@ class App implements AppInterface
 			}
 		}
 		return $params;
+	}
+
+	/**
+	 * Record visited template into history
+	 *
+	 * @return void
+	 */
+	private function _recordInHistory()
+	{
+		$this->session->set('history', $this->request->getUrl());
 	}
 }
