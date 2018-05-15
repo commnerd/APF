@@ -136,6 +136,7 @@ class App implements AppInterface
 				break;
 			default:
 				echo $this->{'\System\Components\TemplateSystem'}->render($response->template, $params);
+				$this->_recordInHistory();
 				break;
 		}
 	}
@@ -294,6 +295,12 @@ class App implements AppInterface
 		return $paramTypes;
 	}
 
+	/**
+	 * Get the values for the controller that's generating the response
+	 *
+	 * @param  array $paramTypes Type type-hinted types
+	 * @return array             The mapped-paramters to pass to the method
+	 */
 	private function _getParamValues($paramTypes) {
 		$routeParams = $this->_getMappedRoute()->params;
 		$params = array();
@@ -306,5 +313,15 @@ class App implements AppInterface
 			}
 		}
 		return $params;
+	}
+
+	/**
+	 * Record visited template into history
+	 *
+	 * @return void
+	 */
+	private function _recordInHistory()
+	{
+		$this->session->set('history', $this->request->getUrl());
 	}
 }
