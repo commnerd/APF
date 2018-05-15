@@ -25,9 +25,9 @@ class CommentController extends BaseController
      */
     public function store(Request $request)
     {
-        Comment::create($request->toArray);
+        Comment::create($request->toArray());
 
-        $this->redirect('back');
+        return $this->redirect('back');
     }
 
     /**

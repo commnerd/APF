@@ -24,16 +24,16 @@
                                     {{ comment }}
                                 </div>
                                 <div>
-                                    <a href="{{ route('comments.edit', {"ID": comment_id}) }}">Edit</a>
-                                    <a href="{{ route('comments.delete', {"ID": comment_id, "_method": "DELETE"}) }}">Delete</a>
+                                    <a href="{{ route('posts.comments.edit', {"ID": comment_id}) }}">Edit</a>
+                                    <a href="{{ route('posts.comments.delete', {"ID": comment_id, "_method": "DELETE"}) }}">Delete</a>
                                 </div>
                             </li>
                             {% endfor %}
                         {% endif %}
                         <li>
-                            <form action="{{ route('comments.store') }}" method="POST">
-                                <input type="hidden" name="POST_ID" value="{{ post.ID }}" />
-                                <textarea name="comment"></textarea>
+                            <form action="{{ route('posts.comments.store', { "POST_ID": post.ID }) }}" method="POST">
+                                <input type="hidden" name="POST_ID" value="{{ post.ID }}">
+                                <textarea name="CONTENT"></textarea>
                                 <div><button type="submit">Add Comment</button></div>
                             </form>
                         </li>

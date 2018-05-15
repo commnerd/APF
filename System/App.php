@@ -7,6 +7,7 @@ use System\Services\DirectoryScanner;
 use System\Components\AppComponent;
 use System\Components\ConfigReader;
 use System\Components\DbConnection;
+use System\Components\Response;
 use System\Components\Config;
 use System\Components\Router;
 use System\Components\Route;
@@ -129,8 +130,8 @@ class App implements AppInterface
 		$type = $response->type;
 		$params = array_merge($response->params, $this->config->get());
 		switch($type) {
-			case $response::TYPE_REDIRECT:
-				header('Location: '.$params['route']);
+			case Response::TYPE_REDIRECT:
+				header('Location: '.$response->route);
 				http_response_code($response->code);
 				break;
 			default:
@@ -195,7 +196,6 @@ class App implements AppInterface
 		foreach($files as $file) {
 			$router->addRoutes(include($file));
 		}
-		exit(print_r($router, true));
 		$this->_componentMap['\System\Components\Router'] = $router;
 		$this->_componentAliasMap['router'] = '\System\Components\Router';
 	}
