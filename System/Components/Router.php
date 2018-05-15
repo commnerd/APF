@@ -106,6 +106,7 @@ class Router extends AltoRouter
 
 	/**
 	 * Extension of the generate method to append get variables to query
+	 * 
 	 * @param  string $routeName The name of the route
 	 * @param  array  $params    The parameters passed to the route
 	 * @return string            The route with appended params (if applicable)
@@ -115,9 +116,8 @@ class Router extends AltoRouter
 		$route = parent::generate($routeName, $params);
 
 		$routeDef = $this->namedRoutes[$routeName];
-		if(preg_match('/\[.*?:(.*?)\]/', $routeDef, $matches)) {
-			array_shift($matches);
-			foreach($matches as $key) {
+		foreach(array_keys($params) as $key) {
+			if(preg_match('/\[.*?:'.$key.'\]/', $routeDef)) {
 				unset($params[$key]);
 			}
 		}

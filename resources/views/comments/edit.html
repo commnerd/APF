@@ -1,0 +1,16 @@
+{% extends 'layouts/main.html' %}
+
+{% block header %}
+    <header>
+        <h1>Edit Comment</h1>
+    </header>
+{% endblock %}
+
+{% block content %}
+    <section>
+        {% include 'comments/form.html' with {
+            "action": route('posts.comments.update', {"POST_ID": post.ID, "ID": comment.ID}),
+            "method": "PUT",
+        } %}
+    </section>
+{% endblock %}

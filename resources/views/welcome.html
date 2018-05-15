@@ -21,11 +21,11 @@
                             {% for comment_id, comment in post.COMMENTS %}
                             <li class="comment">
                                 <div>
-                                    {{ comment }}
+                                    {{ comment.CONTENT }}
                                 </div>
                                 <div>
-                                    <a href="{{ route('posts.comments.edit', {"ID": comment_id}) }}">Edit</a>
-                                    <a href="{{ route('posts.comments.delete', {"ID": comment_id, "_method": "DELETE"}) }}">Delete</a>
+                                    <a href="{{ route('posts.comments.edit', {"POST_ID": post.ID, "ID": comment_id}) }}">Edit</a>
+                                    <a href="{{ route('posts.comments.destroy', {"POST_ID": post.ID, "ID": comment_id, "_method": "DELETE"}) }}">Delete</a>
                                 </div>
                             </li>
                             {% endfor %}

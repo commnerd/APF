@@ -1,0 +1,17 @@
+<form action="{{ action }}" method="POST">
+    {% if method and method|upper != "POST" %}
+    <input type="hidden" name="_method" value="{{ method }}" />
+    {% endif%}
+    <div>
+        {% include 'shared/forms/text_area.html' with {
+            "label": "Content",
+            "slug": "CONTENT",
+            "content": comment.CONTENT
+        } %}
+    </div>
+    <div>
+        {% include 'shared/forms/button_submit.html' with {
+            "label": "Submit"
+        } %}
+    </div>
+</form>

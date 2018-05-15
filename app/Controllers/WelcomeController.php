@@ -8,7 +8,7 @@ class WelcomeController extends BaseController
 {
     public function index()
     {
-        $posts = Post::all();
+        $posts = Post::with('COMMENTS')->all();
         
         return $this->view('welcome.html', array(
             'posts' => $posts

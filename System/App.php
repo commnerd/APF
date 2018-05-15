@@ -196,6 +196,7 @@ class App implements AppInterface
 		foreach($files as $file) {
 			$router->addRoutes(include($file));
 		}
+
 		$this->_componentMap['\System\Components\Router'] = $router;
 		$this->_componentAliasMap['router'] = '\System\Components\Router';
 	}
