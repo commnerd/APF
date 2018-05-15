@@ -47,25 +47,31 @@ class Response extends PackageComponent
 	protected $_params;
 
 	/**
+	 * Route/Path for a redirect
+	 * 
+	 * @var string
+	 */
+	protected $_route;
+
+	/**
 	 * Build the Response
 	 *
 	 * @param array $params The parameters to pass to the template
 	 */
 	public function __construct(array $params = array())
 	{
-		foreach(get_object_vars($this) as $key => $val) {
-			$paramKey = substr($key, 1);
-			if(isset($params[$paramKey])) {
-				$this->{$key} = $params[$paramKey];
-				unset($params[$paramKey]);
+		if($this->_type === self::TYPE_REDIRECT && !isset($params['route'])) {
+			throw new ErrorException(self::ERROR_TYPE_REDIRECT);
+		}
+
+		foreach($params as $key => $val) {
+			if(property_exists($this, "_".$key)) {
+				$this->{"_".$key} = $params[$key];
+				unset($params[$key]);
 			}
 		}
 
 		$this->_params = $params;
-
-		if($this->_type === self::TYPE_REDIRECT && !isset($params['route'])) {
-			throw new ErrorException(self::ERROR_TYPE_REDIRECT);
-		}
 	}
 }
 

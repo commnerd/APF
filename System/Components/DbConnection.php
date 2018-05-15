@@ -103,7 +103,7 @@ class DbConnection extends AppComponent
 		//var_dump($pSQL);
 		$stmt = $this->connection->prepare($pSQL);
 		//var_dump($stmt);
-			if (!is_null($pTheBindVal)) {
+		if (!is_null($pTheBindVal)) {
 			//print_r($pTheBindVal);
 			$ref    = new \ReflectionClass('mysqli_stmt');
 			//print_r($ref);
