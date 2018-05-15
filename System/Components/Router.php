@@ -146,7 +146,7 @@ class Router extends AltoRouter
 				$routeName .= "$subName";
 			}
 		}
-		$routeName .= ".".$method;
+		$routeName .= $method;
 		return $routeName;
 	}
 }
