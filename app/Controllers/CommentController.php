@@ -36,7 +36,7 @@ class CommentController extends BaseController
      * @param  integer $id The ID of the comment to edit
      * @return Response
      */
-    public function edit($id)
+    public function edit($postId, $id)
     {
         $comment = Comment::findOrFail($id);
 
@@ -52,7 +52,7 @@ class CommentController extends BaseController
      * @param  integer $id The ID of the comment to edit
      * @return Response
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, $postId, $id)
     {
         $comment = Comment::findOrFail($id);
 
@@ -67,7 +67,7 @@ class CommentController extends BaseController
      * @param  integer $id The ID of the comment to delete
      * @return Response
      */
-    public function destroy($id)
+    public function destroy($postId, $id)
     {
         Comment::delete($id);
 
